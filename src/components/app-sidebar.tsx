@@ -10,7 +10,9 @@ import {
   CircleDollarSign,
   Package,
   Settings,
-  LogOut
+  LogOut,
+  Hammer,
+  HardHat
 } from "lucide-react";
 
 import {
@@ -46,6 +48,8 @@ export function AppSidebar() {
     { title: "Maintenance", icon: Wrench, path: "/maintenance" },
     { title: "Planification", icon: Calendar, path: "/planning" },
     { title: "Alertes", icon: Bell, path: "/alerts" },
+    { title: "Atelier", icon: Hammer, path: "/atelier" },
+    { title: "Mécaniciens", icon: HardHat, path: "/mecaniciens" },
   ];
   
   // Autres liens
