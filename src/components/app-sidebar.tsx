@@ -34,11 +34,11 @@ export function AppSidebar() {
     { title: "Tableau de bord", icon: BarChart3, path: "/" },
   ];
   
-  // Groupe de gestion de flotte
+  // Groupe de gestion de flotte - Ordre modifié: groupes, chauffeurs, véhicules
   const fleetMenuItems = [
-    { title: "Véhicules", icon: Car, path: "/vehicles" },
-    { title: "Chauffeurs", icon: User, path: "/drivers" },
     { title: "Groupes", icon: Users, path: "/groups" },
+    { title: "Chauffeurs", icon: User, path: "/drivers" },
+    { title: "Véhicules", icon: Car, path: "/vehicles" },
   ];
   
   // Groupe de maintenance
