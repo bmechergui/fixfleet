@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import Drivers from "./pages/Drivers";
 import Maintenance from "./pages/Maintenance";
+import Groups from "./pages/Groups";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/vehicles" element={<Vehicles />} />
           <Route path="/drivers" element={<Drivers />} />
           <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/groups" element={<Groups />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
