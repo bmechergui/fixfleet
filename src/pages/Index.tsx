@@ -5,7 +5,7 @@ import { MaintenanceAlerts } from "@/components/dashboard/MaintenanceAlerts";
 import { RecentMaintenances } from "@/components/dashboard/RecentMaintenances";
 import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
 import { InventoryStatus } from "@/components/dashboard/InventoryStatus";
-import { Car, User, Wrench, Package, Calendar } from "lucide-react";
+import { Car, User, Wrench, Tool, Calendar } from "lucide-react";
 
 const Index = () => {
   return (
@@ -38,7 +38,7 @@ const Index = () => {
           <StatCard 
             title="Pièces en stock" 
             value="238" 
-            icon={Package}
+            icon={Tool}
             trend={{ value: "15", isPositive: false }}
             color="yellow"
           />

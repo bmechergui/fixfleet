@@ -1,12 +1,14 @@
+
 import {
   Car,
   BarChart3,
   User,
   Users,
-  Wrench,
+  Tool,
   Calendar,
   Bell,
   CircleDollarSign,
+  Wrench,
   Package,
   Settings,
   LogOut
@@ -33,7 +35,7 @@ export function AppSidebar() {
     { title: "Véhicules", icon: Car, path: "/vehicles" },
     { title: "Chauffeurs", icon: User, path: "/drivers" },
     { title: "Groupes", icon: Users, path: "/groups" },
-    { title: "Maintenance", icon: Wrench, path: "/maintenance" },
+    { title: "Maintenance", icon: Tool, path: "/maintenance" },
     { title: "Planification", icon: Calendar, path: "/planning" },
     { title: "Alertes", icon: Bell, path: "/alerts" },
     { title: "Atelier", icon: Wrench, path: "/workshop" },
