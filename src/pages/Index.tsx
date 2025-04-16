@@ -1,60 +1,13 @@
-
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { StatCard } from "@/components/dashboard/StatCard";
-import { MaintenanceAlerts } from "@/components/dashboard/MaintenanceAlerts";
-import { RecentMaintenances } from "@/components/dashboard/RecentMaintenances";
-import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
-import { InventoryStatus } from "@/components/dashboard/InventoryStatus";
-import { Car, User, Wrench, Package, Calendar } from "lucide-react";
+// Update this page (the content is just a fallback if you fail to update the page)
 
 const Index = () => {
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
-        
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard 
-            title="Véhicules" 
-            value="24" 
-            icon={Car} 
-            trend={{ value: "2", isPositive: true }}
-            color="blue"
-          />
-          <StatCard 
-            title="Chauffeurs" 
-            value="18" 
-            icon={User}
-            trend={{ value: "1", isPositive: true }}
-            color="green"
-          />
-          <StatCard 
-            title="Maintenances à venir" 
-            value="7" 
-            icon={Calendar}
-            trend={{ value: "3", isPositive: false }}
-            color="orange"
-          />
-          <StatCard 
-            title="Pièces en stock" 
-            value="238" 
-            icon={Package}
-            trend={{ value: "15", isPositive: false }}
-            color="yellow"
-          />
-        </div>
-        
-        <div className="grid gap-4 md:grid-cols-2">
-          <VehicleStatusChart />
-          <InventoryStatus />
-        </div>
-        
-        <div className="grid gap-4 md:grid-cols-2">
-          <MaintenanceAlerts />
-          <RecentMaintenances />
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
+        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

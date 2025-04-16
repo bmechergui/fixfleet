@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,18 +61,6 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				// Fleet management specific colors
-				fleet: {
-					blue: '#1a56db',
-					lightBlue: '#3f83f8',
-					navy: '#0f172a',
-					green: '#059669',
-					red: '#dc2626',
-					orange: '#ea580c',
-					yellow: '#eab308',
-					gray: '#6b7280',
-					lightGray: '#e5e7eb'
 				}
 			},
 			borderRadius: {
@@ -97,16 +84,11 @@ export default {
 					to: {
 						height: '0'
 					}
-				},
-				'pulse-status': {
-					'0%, 100%': { opacity: '1' },
-					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-status': 'pulse-status 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+				'accordion-up': 'accordion-up 0.2s ease-out'
 			}
 		}
 	},
