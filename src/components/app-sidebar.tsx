@@ -1,3 +1,4 @@
+
 import {
   Car,
   BarChart3,
@@ -28,16 +29,27 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 
 export function AppSidebar() {
-  const menuItems = [
+  // Réorganisation des liens du menu principal
+  const mainMenuItems = [
     { title: "Tableau de bord", icon: BarChart3, path: "/" },
+  ];
+  
+  // Groupe de gestion de flotte
+  const fleetMenuItems = [
     { title: "Véhicules", icon: Car, path: "/vehicles" },
     { title: "Chauffeurs", icon: User, path: "/drivers" },
     { title: "Groupes", icon: Users, path: "/groups" },
+  ];
+  
+  // Groupe de maintenance
+  const maintenanceMenuItems = [
     { title: "Maintenance", icon: Wrench, path: "/maintenance" },
     { title: "Planification", icon: Calendar, path: "/planning" },
     { title: "Alertes", icon: Bell, path: "/alerts" },
-    { title: "Atelier", icon: Wrench, path: "/workshop" },
-    { title: "Mécaniciens", icon: User, path: "/mechanics" },
+  ];
+  
+  // Autres liens
+  const otherMenuItems = [
     { title: "Stock", icon: Package, path: "/inventory" },
     { title: "Finances", icon: CircleDollarSign, path: "/finances" },
   ];
@@ -54,10 +66,83 @@ export function AppSidebar() {
       </SidebarHeader>
       
       <SidebarContent className="px-3 py-4">
+        {/* Menu principal */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => {
+              {mainMenuItems.map((item) => {
+                const isActive = getCurrentPath() === item.path;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild className={`${isActive ? 'bg-fleet-blue text-white' : ''} hover:bg-fleet-lightBlue hover:text-white transition-colors`}>
+                      <Link to={item.path} className="flex items-center">
+                        <item.icon size={20} className="mr-2" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        {/* Groupe Gestion de flotte */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-fleet-gray px-2 py-1">
+            Gestion de flotte
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {fleetMenuItems.map((item) => {
+                const isActive = getCurrentPath() === item.path;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild className={`${isActive ? 'bg-fleet-blue text-white' : ''} hover:bg-fleet-lightBlue hover:text-white transition-colors`}>
+                      <Link to={item.path} className="flex items-center">
+                        <item.icon size={20} className="mr-2" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        {/* Groupe Maintenance */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-fleet-gray px-2 py-1">
+            Maintenance
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {maintenanceMenuItems.map((item) => {
+                const isActive = getCurrentPath() === item.path;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild className={`${isActive ? 'bg-fleet-blue text-white' : ''} hover:bg-fleet-lightBlue hover:text-white transition-colors`}>
+                      <Link to={item.path} className="flex items-center">
+                        <item.icon size={20} className="mr-2" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        {/* Groupe Autres */}
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="text-fleet-gray px-2 py-1">
+            Autres
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {otherMenuItems.map((item) => {
                 const isActive = getCurrentPath() === item.path;
                 return (
                   <SidebarMenuItem key={item.title}>
