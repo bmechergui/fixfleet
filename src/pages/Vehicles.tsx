@@ -1,6 +1,7 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { type Vehicle } from "@/types/vehicle";
+import { VehicleDocuments } from "@/components/vehicles/VehicleDocuments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,10 +22,47 @@ interface Vehicle {
   driver: string;
   group: string;
   status: "active" | "maintenance" | "inactive";
+  kilometers: string;
+  documents: {
+    id: string;
+    name: string;
+    expirationDate: string;
+    status: "valid" | "to-renew";
+  }[];
 }
 
 const vehicles: Vehicle[] = [
-  { id: "1", registrationNumber: "AB-123-CD", brand: "Renault", model: "Clio", year: 2021, driver: "Jean Dupont", group: "Commercial", status: "active" },
+  {
+    id: "1",
+    registrationNumber: "AB-123-CD",
+    brand: "Renault",
+    model: "Clio",
+    year: 2021,
+    driver: "Jean Dupont",
+    group: "Commercial",
+    status: "active",
+    kilometers: "45000",
+    documents: [
+      {
+        id: "1",
+        name: "Assurance",
+        expirationDate: "15/06/2025",
+        status: "valid"
+      },
+      {
+        id: "2",
+        name: "Vignette",
+        expirationDate: "31/12/2025",
+        status: "to-renew"
+      },
+      {
+        id: "3",
+        name: "Contrôle technique",
+        expirationDate: "20/05/2025",
+        status: "valid"
+      }
+    ]
+  },
   { id: "2", registrationNumber: "EF-456-GH", brand: "Peugeot", model: "308", year: 2020, driver: "Marie Martin", group: "Commercial", status: "active" },
   { id: "3", registrationNumber: "IJ-789-KL", brand: "Citroën", model: "C3", year: 2022, driver: "Paul Bernard", group: "Service", status: "maintenance" },
   { id: "4", registrationNumber: "MN-012-OP", brand: "Ford", model: "Transit", year: 2019, driver: "Sophie Petit", group: "Livraison", status: "active" },
@@ -179,6 +217,7 @@ export default function Vehicles() {
                     <TableHead>Immatriculation</TableHead>
                     <TableHead>Marque/Modèle</TableHead>
                     <TableHead>Année</TableHead>
+                    <TableHead>Kilométrage</TableHead>
                     <TableHead>Chauffeur</TableHead>
                     <TableHead>Groupe</TableHead>
                     <TableHead>Statut</TableHead>
@@ -191,6 +230,7 @@ export default function Vehicles() {
                       <TableCell className="font-medium">{vehicle.registrationNumber}</TableCell>
                       <TableCell>{vehicle.brand} {vehicle.model}</TableCell>
                       <TableCell>{vehicle.year}</TableCell>
+                      <TableCell>{vehicle.kilometers || "-"} km</TableCell>
                       <TableCell>{vehicle.driver}</TableCell>
                       <TableCell>{vehicle.group}</TableCell>
                       <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
@@ -217,6 +257,12 @@ export default function Vehicles() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+
+            <div className="mt-8">
+              {vehicles[0].documents && (
+                <VehicleDocuments documents={vehicles[0].documents} />
+              )}
             </div>
           </CardContent>
         </Card>
