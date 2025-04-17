@@ -10,9 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Filter, MoreHorizontal, Edit, FileText, Clock, CheckCircle2 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, Search, Filter, FileText, Edit, CheckCircle2, Calendar, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useForm } from "react-hook-form";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface Maintenance {
   id: string;
@@ -23,67 +27,107 @@ interface Maintenance {
   status: "planned" | "in-progress" | "completed";
   mechanic: string;
   description: string;
+  category: "preventive" | "corrective" | "periodic" | "predictive";
+  basedOn?: "kilometers" | "time";
+  kilometers?: string;
+  periodicity?: string;
+  nextDate?: string;
   cost?: string;
 }
 
 const maintenances: Maintenance[] = [
   { 
-    id: "1", 
+    id: "M-001", 
     type: "Vidange", 
     vehicle: "Renault Clio (AB-123-CD)", 
     date: "15/04/2025", 
     status: "completed", 
     mechanic: "Pierre Martin",
     description: "Vidange complète avec remplacement du filtre à huile.",
+    category: "preventive",
+    basedOn: "kilometers",
+    kilometers: "10000",
     cost: "120 €"
   },
   { 
-    id: "2", 
+    id: "M-002", 
     type: "Remplacement plaquettes", 
     vehicle: "Peugeot 308 (EF-456-GH)", 
     date: "14/04/2025", 
     status: "completed", 
     mechanic: "Sophie Durand",
     description: "Remplacement des plaquettes de frein avant et arrière.",
+    category: "corrective",
     cost: "230 €"
   },
   { 
-    id: "3", 
+    id: "M-003", 
     type: "Contrôle technique", 
     vehicle: "Citroën C3 (IJ-789-KL)", 
     date: "16/04/2025", 
     status: "in-progress", 
     mechanic: "Jean Dubois",
     description: "Contrôle technique réglementaire.",
+    category: "periodic",
+    periodicity: "2 ans",
+    nextDate: "16/04/2027",
     cost: "85 €"
   },
   { 
-    id: "4", 
+    id: "M-004", 
     type: "Changement batterie", 
     vehicle: "Ford Transit (MN-012-OP)", 
     date: "18/04/2025", 
     status: "planned", 
     mechanic: "Marie Lambert",
-    description: "Remplacement de la batterie défectueuse."
+    description: "Remplacement de la batterie défectueuse.",
+    category: "corrective"
   },
   { 
-    id: "5", 
+    id: "M-005", 
     type: "Révision générale", 
     vehicle: "Volkswagen Passat (QR-345-ST)", 
     date: "20/04/2025", 
     status: "planned", 
     mechanic: "Non assigné",
-    description: "Révision générale aux 30 000 km."
+    description: "Révision générale aux 30 000 km.",
+    category: "preventive",
+    basedOn: "kilometers",
+    kilometers: "30000"
   },
   { 
-    id: "6", 
+    id: "M-006", 
     type: "Réparation climatisation", 
     vehicle: "Toyota Yaris (UV-678-WX)", 
     date: "12/04/2025", 
     status: "completed", 
     mechanic: "Pierre Martin",
     description: "Recharge de gaz et réparation du système de climatisation.",
+    category: "corrective",
     cost: "180 €"
+  },
+  { 
+    id: "M-007", 
+    type: "Remplacement pneus", 
+    vehicle: "Renault Clio (AB-123-CD)", 
+    date: "25/04/2025", 
+    status: "planned", 
+    mechanic: "Sophie Durand",
+    description: "Remplacement des pneus avant et arrière.",
+    category: "preventive",
+    basedOn: "kilometers",
+    kilometers: "40000"
+  },
+  { 
+    id: "M-008", 
+    type: "Diagnostic système", 
+    vehicle: "Peugeot 3008 (YZ-901-AB)", 
+    date: "22/04/2025", 
+    status: "planned", 
+    mechanic: "Jean Dubois",
+    description: "Diagnostic suite à alertes du système d'injection.",
+    category: "predictive",
+    nextDate: "22/04/2025"
   },
 ];
 
@@ -100,16 +144,35 @@ const getStatusBadge = (status: Maintenance['status']) => {
   }
 };
 
+const getCategoryBadge = (category: Maintenance['category']) => {
+  switch (category) {
+    case "preventive":
+      return <Badge variant="outline" className="border-green-500 text-green-500">Préventive</Badge>;
+    case "corrective":
+      return <Badge variant="outline" className="border-red-500 text-red-500">Corrective</Badge>;
+    case "periodic":
+      return <Badge variant="outline" className="border-blue-500 text-blue-500">Périodique</Badge>;
+    case "predictive":
+      return <Badge variant="outline" className="border-purple-500 text-purple-500">Prédictive</Badge>;
+    default:
+      return null;
+  }
+};
+
 export default function Maintenance() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Maintenance['category']>("preventive");
+  const [basedOn, setBasedOn] = useState<"kilometers" | "time">("kilometers");
+  const form = useForm();
 
   const filteredMaintenances = maintenances.filter(maintenance => {
     const matchesSearch = 
       maintenance.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       maintenance.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      maintenance.mechanic.toLowerCase().includes(searchTerm.toLowerCase());
+      maintenance.mechanic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      maintenance.id.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (activeTab === "all") return matchesSearch;
     else if (activeTab === "planned") return matchesSearch && maintenance.status === "planned";
@@ -118,6 +181,14 @@ export default function Maintenance() {
     
     return matchesSearch;
   });
+
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value as Maintenance['category']);
+  };
+
+  const handleBasedOnChange = (value: string) => {
+    setBasedOn(value as "kilometers" | "time");
+  };
 
   return (
     <DashboardLayout>
@@ -131,7 +202,7 @@ export default function Maintenance() {
                 Ajouter une maintenance
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
+            <DialogContent className="sm:max-w-[650px]">
               <DialogHeader>
                 <DialogTitle>Planifier une maintenance</DialogTitle>
                 <DialogDescription>
@@ -141,21 +212,116 @@ export default function Maintenance() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="type">Type d'entretien</Label>
+                    <Label htmlFor="id">ID</Label>
+                    <Input id="id" placeholder="ID unique" disabled value="M-XXX" />
+                    <p className="text-xs text-muted-foreground">Attribué automatiquement</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nom</Label>
+                    <Input id="name" placeholder="Nom de la maintenance" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    placeholder="Détails des travaux à effectuer..."
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Catégorie</Label>
+                  <ToggleGroup type="single" value={selectedCategory} onValueChange={handleCategoryChange} className="flex flex-wrap gap-2">
+                    <ToggleGroupItem value="preventive" className="data-[state=on]:bg-green-100 data-[state=on]:text-green-700 data-[state=on]:border-green-300">
+                      Préventive
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="corrective" className="data-[state=on]:bg-red-100 data-[state=on]:text-red-700 data-[state=on]:border-red-300">
+                      Corrective
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="periodic" className="data-[state=on]:bg-blue-100 data-[state=on]:text-blue-700 data-[state=on]:border-blue-300">
+                      Périodique
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="predictive" className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-700 data-[state=on]:border-purple-300">
+                      Prédictive
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+                
+                {selectedCategory === "preventive" && (
+                  <div className="space-y-3 border p-3 rounded-md">
+                    <Label>Basée sur</Label>
+                    <RadioGroup defaultValue="kilometers" className="flex space-x-4" onValueChange={handleBasedOnChange}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="kilometers" id="r1" />
+                        <Label htmlFor="r1">Kilométrage</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="time" id="r2" />
+                        <Label htmlFor="r2">Temps (date)</Label>
+                      </div>
+                    </RadioGroup>
+                    
+                    {basedOn === "kilometers" ? (
+                      <div className="space-y-2 mt-2">
+                        <Label htmlFor="kilometers">Kilométrage</Label>
+                        <Input id="kilometers" type="number" placeholder="Ex: 10000" />
+                      </div>
+                    ) : (
+                      <div className="space-y-2 mt-2">
+                        <Label htmlFor="time">Date</Label>
+                        <Input id="time" type="date" />
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {selectedCategory === "periodic" && (
+                  <div className="space-y-3 border p-3 rounded-md">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="periodicity">Périodicité</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1m">1 mois</SelectItem>
+                            <SelectItem value="3m">3 mois</SelectItem>
+                            <SelectItem value="6m">6 mois</SelectItem>
+                            <SelectItem value="1y">1 an</SelectItem>
+                            <SelectItem value="2y">2 ans</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="nextDate">Prochaine date</Label>
+                        <Input id="nextDate" type="date" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedCategory === "predictive" && (
+                  <div className="space-y-2 border p-3 rounded-md">
+                    <Label htmlFor="sensorData">Basée sur des données capteurs</Label>
                     <Select>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un type" />
+                        <SelectValue placeholder="Sélectionner un type d'alerte" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="vidange">Vidange</SelectItem>
-                        <SelectItem value="controle">Contrôle technique</SelectItem>
-                        <SelectItem value="frein">Remplacement des freins</SelectItem>
-                        <SelectItem value="pneu">Changement de pneus</SelectItem>
-                        <SelectItem value="revision">Révision générale</SelectItem>
-                        <SelectItem value="autre">Autre</SelectItem>
+                        <SelectItem value="engine">Anomalie moteur</SelectItem>
+                        <SelectItem value="brakes">Usure des freins</SelectItem>
+                        <SelectItem value="battery">État de la batterie</SelectItem>
+                        <SelectItem value="fuel">Consommation carburant</SelectItem>
+                        <SelectItem value="custom">Autre</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="vehicle">Véhicule</Label>
                     <Select>
@@ -170,12 +336,13 @@ export default function Maintenance() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="date">Date planifiée</Label>
-                    <Input type="date" id="date" />
+                    <Input id="date" type="date" />
                   </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="mechanic">Mécanicien assigné</Label>
                     <Select>
@@ -191,27 +358,42 @@ export default function Maintenance() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Statut</Label>
+                    <Select defaultValue="planned">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un statut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="planned">Planifié</SelectItem>
+                        <SelectItem value="in-progress">En cours</SelectItem>
+                        <SelectItem value="completed">Terminé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+                
+                {/* Coût uniquement si completed */}
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
-                    placeholder="Détails des travaux à effectuer..."
-                    rows={3}
-                  />
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="completed" />
+                    <label
+                      htmlFor="completed"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Intervention terminée
+                    </label>
+                  </div>
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="status">Statut</Label>
-                  <Select defaultValue="planned">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="planned">Planifié</SelectItem>
-                      <SelectItem value="in-progress">En cours</SelectItem>
-                      <SelectItem value="completed">Terminé</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="cost">Coût (si terminé)</Label>
+                  <div className="relative">
+                    <Input id="cost" placeholder="Ex: 120" />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <span className="text-gray-500">€</span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
@@ -254,9 +436,11 @@ export default function Maintenance() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>ID</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Véhicule</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Catégorie</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Mécanicien</TableHead>
                     <TableHead>Coût</TableHead>
@@ -266,9 +450,11 @@ export default function Maintenance() {
                 <TableBody>
                   {filteredMaintenances.map((maintenance) => (
                     <TableRow key={maintenance.id}>
-                      <TableCell className="font-medium">{maintenance.type}</TableCell>
+                      <TableCell className="font-medium">{maintenance.id}</TableCell>
+                      <TableCell>{maintenance.type}</TableCell>
                       <TableCell>{maintenance.vehicle}</TableCell>
                       <TableCell>{maintenance.date}</TableCell>
+                      <TableCell>{getCategoryBadge(maintenance.category)}</TableCell>
                       <TableCell>{getStatusBadge(maintenance.status)}</TableCell>
                       <TableCell>{maintenance.mechanic}</TableCell>
                       <TableCell>{maintenance.cost || "-"}</TableCell>
