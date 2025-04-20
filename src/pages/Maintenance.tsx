@@ -7,9 +7,9 @@ import { Plus } from "lucide-react";
 import { MaintenanceForm } from "@/components/maintenance/MaintenanceForm";
 import { MaintenanceTable } from "@/components/maintenance/MaintenanceTable";
 import { MaintenanceFilters } from "@/components/maintenance/MaintenanceFilters";
-import { Maintenance } from "@/types/maintenance";
+import type { Maintenance as MaintenanceType } from "@/types/maintenance";
 
-const maintenances: Maintenance[] = [
+const maintenances: MaintenanceType[] = [
   { 
     id: "M-001", 
     type: "Vidange", 

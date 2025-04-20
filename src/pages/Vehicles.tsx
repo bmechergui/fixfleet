@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { type Vehicle, VehicleDocument } from "@/types/vehicle";
+import type { Vehicle as VehicleType, VehicleDocument } from "@/types/vehicle";
 import { VehicleDocuments } from "@/components/vehicles/VehicleDocuments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
