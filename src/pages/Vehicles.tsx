@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { type Vehicle } from "@/types/vehicle";
+import { type Vehicle, VehicleDocument } from "@/types/vehicle";
 import { VehicleDocuments } from "@/components/vehicles/VehicleDocuments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash } from "lucide-react";
+import { Plus, Search, Filter, MoreHorizontal, Edit, Trash, FileText } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Vehicle {
@@ -23,12 +23,7 @@ interface Vehicle {
   group: string;
   status: "active" | "maintenance" | "inactive";
   kilometers: string;
-  documents: {
-    id: string;
-    name: string;
-    expirationDate: string;
-    status: "valid" | "to-renew";
-  }[];
+  documents: VehicleDocument[];
 }
 
 const vehicles: Vehicle[] = [
@@ -63,13 +58,90 @@ const vehicles: Vehicle[] = [
       }
     ]
   },
-  { id: "2", registrationNumber: "EF-456-GH", brand: "Peugeot", model: "308", year: 2020, driver: "Marie Martin", group: "Commercial", status: "active" },
-  { id: "3", registrationNumber: "IJ-789-KL", brand: "Citroën", model: "C3", year: 2022, driver: "Paul Bernard", group: "Service", status: "maintenance" },
-  { id: "4", registrationNumber: "MN-012-OP", brand: "Ford", model: "Transit", year: 2019, driver: "Sophie Petit", group: "Livraison", status: "active" },
-  { id: "5", registrationNumber: "QR-345-ST", brand: "Volkswagen", model: "Passat", year: 2021, driver: "Thomas Robert", group: "Direction", status: "active" },
-  { id: "6", registrationNumber: "UV-678-WX", brand: "Toyota", model: "Yaris", year: 2020, driver: "Émilie Durand", group: "Commercial", status: "inactive" },
-  { id: "7", registrationNumber: "YZ-901-AB", brand: "Renault", model: "Kangoo", year: 2018, driver: "Nicolas Moreau", group: "Service", status: "active" },
-  { id: "8", registrationNumber: "CD-234-EF", brand: "Mercedes", model: "Sprinter", year: 2022, driver: "Laure Simon", group: "Livraison", status: "maintenance" },
+  {
+    id: "2",
+    registrationNumber: "EF-456-GH",
+    brand: "Peugeot",
+    model: "308",
+    year: 2020,
+    driver: "Marie Martin",
+    group: "Commercial",
+    status: "active",
+    kilometers: "32000",
+    documents: []
+  },
+  {
+    id: "3",
+    registrationNumber: "IJ-789-KL",
+    brand: "Citroën",
+    model: "C3",
+    year: 2022,
+    driver: "Paul Bernard",
+    group: "Service",
+    status: "maintenance",
+    kilometers: "28000",
+    documents: []
+  },
+  {
+    id: "4",
+    registrationNumber: "MN-012-OP",
+    brand: "Ford",
+    model: "Transit",
+    year: 2019,
+    driver: "Sophie Petit",
+    group: "Livraison",
+    status: "active",
+    kilometers: "65000",
+    documents: []
+  },
+  {
+    id: "5",
+    registrationNumber: "QR-345-ST",
+    brand: "Volkswagen",
+    model: "Passat",
+    year: 2021,
+    driver: "Thomas Robert",
+    group: "Direction",
+    status: "active",
+    kilometers: "38000",
+    documents: []
+  },
+  {
+    id: "6",
+    registrationNumber: "UV-678-WX",
+    brand: "Toyota",
+    model: "Yaris",
+    year: 2020,
+    driver: "Émilie Durand",
+    group: "Commercial",
+    status: "inactive",
+    kilometers: "42000",
+    documents: []
+  },
+  {
+    id: "7",
+    registrationNumber: "YZ-901-AB",
+    brand: "Renault",
+    model: "Kangoo",
+    year: 2018,
+    driver: "Nicolas Moreau",
+    group: "Service",
+    status: "active",
+    kilometers: "78000",
+    documents: []
+  },
+  {
+    id: "8",
+    registrationNumber: "CD-234-EF",
+    brand: "Mercedes",
+    model: "Sprinter",
+    year: 2022,
+    driver: "Laure Simon",
+    group: "Livraison",
+    status: "maintenance",
+    kilometers: "25000",
+    documents: []
+  }
 ];
 
 const getStatusBadge = (status: Vehicle['status']) => {
@@ -88,7 +160,8 @@ const getStatusBadge = (status: Vehicle['status']) => {
 export default function Vehicles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  
   const filteredVehicles = vehicles.filter(vehicle => {
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -218,6 +291,7 @@ export default function Vehicles() {
                     <TableHead>Marque/Modèle</TableHead>
                     <TableHead>Année</TableHead>
                     <TableHead>Kilométrage</TableHead>
+                    <TableHead>Documents</TableHead>
                     <TableHead>Chauffeur</TableHead>
                     <TableHead>Groupe</TableHead>
                     <TableHead>Statut</TableHead>
@@ -230,7 +304,17 @@ export default function Vehicles() {
                       <TableCell className="font-medium">{vehicle.registrationNumber}</TableCell>
                       <TableCell>{vehicle.brand} {vehicle.model}</TableCell>
                       <TableCell>{vehicle.year}</TableCell>
-                      <TableCell>{vehicle.kilometers || "-"} km</TableCell>
+                      <TableCell>{vehicle.kilometers} km</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedVehicleId(vehicle.id)}
+                        >
+                          <FileText className="h-4 w-4" />
+                          <span className="ml-2">{vehicle.documents?.length || 0}</span>
+                        </Button>
+                      </TableCell>
                       <TableCell>{vehicle.driver}</TableCell>
                       <TableCell>{vehicle.group}</TableCell>
                       <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
@@ -259,11 +343,13 @@ export default function Vehicles() {
               </Table>
             </div>
 
-            <div className="mt-8">
-              {vehicles[0].documents && (
-                <VehicleDocuments documents={vehicles[0].documents} />
-              )}
-            </div>
+            {selectedVehicleId && (
+              <div className="mt-8">
+                <VehicleDocuments 
+                  documents={vehicles.find(v => v.id === selectedVehicleId)?.documents || []} 
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
