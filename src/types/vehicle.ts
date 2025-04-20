@@ -19,3 +19,6 @@ export interface Vehicle {
   kilometers?: string;
   documents?: VehicleDocument[];
 }
+
+// Re-export with Type suffix for components that need to differentiate from local variables
+export type VehicleType = Vehicle;
