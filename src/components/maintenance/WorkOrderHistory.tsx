@@ -2,21 +2,22 @@
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Clock, User } from "lucide-react";
 
-// Historique simulé (remplacer par objet réel ou props si besoin)
-const history = [
-  {
-    date: "15/04/2025",
-    by: "Pierre Martin",
-    action: "Création de l'ordre de travail."
-  },
-  {
-    date: "16/04/2025",
-    by: "Sophie Durand",
-    action: "Tâche assignée à un mécanicien."
-  }
-];
+export interface WorkOrderTask {
+  id: string;
+  label: string;
+  assignedTo: string;
+  status: "pending" | "done";
+}
 
-export function WorkOrderHistory() {
+interface WorkOrderHistoryProps {
+  history: {
+    date: string;
+    by: string;
+    action: string;
+  }[];
+}
+
+export function WorkOrderHistory({ history }: WorkOrderHistoryProps) {
   return (
     <div className="mt-4">
       <Alert className="mb-2">

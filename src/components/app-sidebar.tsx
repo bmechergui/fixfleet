@@ -14,7 +14,6 @@ import {
   Hammer,
   HardHat
 } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -43,11 +42,11 @@ export function AppSidebar() {
     { title: "Véhicules", icon: Car, path: "/vehicles" },
   ];
   
-  // Groupe de maintenance
+  // Groupe de maintenance (ordre: Maintenance, Alertes, Planification, Atelier, Mécaniciens)
   const maintenanceMenuItems = [
     { title: "Maintenance", icon: Wrench, path: "/maintenance" },
-    { title: "Planification", icon: Calendar, path: "/planning" },
     { title: "Alertes", icon: Bell, path: "/alerts" },
+    { title: "Planification", icon: Calendar, path: "/planning" },
     { title: "Atelier", icon: Hammer, path: "/atelier" },
     { title: "Mécaniciens", icon: HardHat, path: "/mecaniciens" },
   ];

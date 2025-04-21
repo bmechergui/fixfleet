@@ -8,6 +8,20 @@ import { useState } from "react";
 import { WorkOrderDialog } from "./WorkOrderDialog";
 import { MaintenanceDetailsDialog } from "./MaintenanceDetailsDialog";
 
+// Ajout badge urgence
+const getUrgencyBadge = (urgency?: Maintenance['urgency']) => {
+  switch (urgency) {
+    case "haute":
+      return <Badge variant="destructive">Haute</Badge>;
+    case "moyenne":
+      return <Badge variant="destructive" className="bg-orange-500">Moyenne</Badge>;
+    case "faible":
+      return <Badge variant="outline" className="border-blue-500 text-blue-500">Faible</Badge>;
+    default:
+      return <Badge variant="outline" className="border-muted text-muted">-</Badge>;
+  }
+};
+
 interface MaintenanceTableProps {
   maintenances: Maintenance[];
 }
@@ -44,7 +58,6 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
   const [workOrderOpen, setWorkOrderOpen] = useState(false);
   const [selectedMaintenance, setSelectedMaintenance] = useState<string | null>(null);
 
-  // Nouvel état pour le dialog "Voir détails"
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedDetails, setSelectedDetails] = useState<Maintenance | null>(null);
 
@@ -68,6 +81,7 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
             <TableHead>Véhicule</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Catégorie</TableHead>
+            <TableHead>Urgence</TableHead>
             <TableHead>Statut</TableHead>
             <TableHead>Mécanicien</TableHead>
             <TableHead>Coût</TableHead>
@@ -82,6 +96,7 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
               <TableCell>{maintenance.vehicle}</TableCell>
               <TableCell>{maintenance.date}</TableCell>
               <TableCell>{getCategoryBadge(maintenance.category)}</TableCell>
+              <TableCell>{getUrgencyBadge(maintenance.urgency)}</TableCell>
               <TableCell>{getStatusBadge(maintenance.status)}</TableCell>
               <TableCell>{maintenance.mechanic}</TableCell>
               <TableCell>{maintenance.cost || "-"}</TableCell>

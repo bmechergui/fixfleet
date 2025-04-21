@@ -14,4 +14,7 @@ export interface Maintenance {
   periodicity?: string;
   nextDate?: string;
   cost?: string;
+  urgency?: "haute" | "moyenne" | "faible";
+  // Ajouté pour gérer l’urgence
+  alarmDescription?: string;
 }
