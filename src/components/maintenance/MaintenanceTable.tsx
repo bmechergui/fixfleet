@@ -1,3 +1,4 @@
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +6,7 @@ import { FileText, Edit, CheckCircle2 } from "lucide-react";
 import { Maintenance } from "@/types/maintenance";
 import { useState } from "react";
 import { WorkOrderDialog } from "./WorkOrderDialog";
+import { MaintenanceDetailsDialog } from "./MaintenanceDetailsDialog";
 
 interface MaintenanceTableProps {
   maintenances: Maintenance[];
@@ -42,9 +44,18 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
   const [workOrderOpen, setWorkOrderOpen] = useState(false);
   const [selectedMaintenance, setSelectedMaintenance] = useState<string | null>(null);
 
+  // Nouvel état pour le dialog "Voir détails"
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedDetails, setSelectedDetails] = useState<Maintenance | null>(null);
+
   const handleOpenWorkOrder = (maintenanceId: string) => {
     setSelectedMaintenance(maintenanceId);
     setWorkOrderOpen(true);
+  };
+
+  const handleOpenDetails = (maintenance: Maintenance) => {
+    setSelectedDetails(maintenance);
+    setDetailsDialogOpen(true);
   };
 
   return (
@@ -60,7 +71,7 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
             <TableHead>Statut</TableHead>
             <TableHead>Mécanicien</TableHead>
             <TableHead>Coût</TableHead>
-            <TableHead className="w-[160px]">Actions</TableHead>
+            <TableHead className="w-[180px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -76,7 +87,7 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
               <TableCell>{maintenance.cost || "-"}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" title="Voir les détails">
+                  <Button variant="ghost" size="icon" title="Voir les détails" onClick={() => handleOpenDetails(maintenance)}>
                     <FileText className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" title="Modifier">
@@ -106,6 +117,11 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
         open={workOrderOpen}
         onOpenChange={setWorkOrderOpen}
         maintenanceId={selectedMaintenance}
+      />
+      <MaintenanceDetailsDialog
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        maintenance={selectedDetails}
       />
     </>
   );
