@@ -24,13 +24,17 @@ export function WorkOrderHistory({ history }: WorkOrderHistoryProps) {
         <Clock className="h-4 w-4" />
         <AlertTitle>Historique</AlertTitle>
         <AlertDescription>
-          <ul className="list-disc ml-5 space-y-1">
-            {history.map((item, idx) => (
-              <li key={idx}>
-                <span className="font-medium">{item.date}</span> — {item.action} <span className="text-xs text-muted-foreground">({item.by})</span>
-              </li>
-            ))}
-          </ul>
+          {history && history.length > 0 ? (
+            <ul className="list-disc ml-5 space-y-1">
+              {history.map((item, idx) => (
+                <li key={idx}>
+                  <span className="font-medium">{item.date}</span> — {item.action} <span className="text-xs text-muted-foreground">({item.by})</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground">Aucun historique disponible</p>
+          )}
         </AlertDescription>
       </Alert>
     </div>
