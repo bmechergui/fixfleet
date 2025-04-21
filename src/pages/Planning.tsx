@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 const Planning = () => {
   const [isCompleted, setIsCompleted] = useState(false);
@@ -19,6 +21,7 @@ const Planning = () => {
   const [maintenanceId, setMaintenanceId] = useState("");
   const [planningDate, setPlanningDate] = useState("");
   const [cost, setCost] = useState("");
+  const [agendaDate, setAgendaDate] = useState<Date | undefined>(new Date());
 
   const documents = [
     { type: "Assurance", expiration: "15/06/2025", status: "Valide" },
@@ -173,6 +176,23 @@ const Planning = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* AJOUT : Agenda de la planification */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-medium">Agenda de la planification</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <ShadcnCalendar
+                mode="single"
+                selected={agendaDate}
+                onSelect={setAgendaDate}
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

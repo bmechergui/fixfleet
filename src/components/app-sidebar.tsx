@@ -1,4 +1,3 @@
-
 import {
   Car,
   BarChart3,
@@ -42,13 +41,13 @@ export function AppSidebar() {
     { title: "Véhicules", icon: Car, path: "/vehicles" },
   ];
   
-  // Groupe de maintenance (ordre: Maintenance, Alertes, Planification, Atelier, Mécaniciens)
+  // Groupe de maintenance - ordre : Maintenance, Planification, Atelier, Mécaniciens, Alertes
   const maintenanceMenuItems = [
     { title: "Maintenance", icon: Wrench, path: "/maintenance" },
-    { title: "Alertes", icon: Bell, path: "/alerts" },
     { title: "Planification", icon: Calendar, path: "/planning" },
     { title: "Atelier", icon: Hammer, path: "/atelier" },
     { title: "Mécaniciens", icon: HardHat, path: "/mecaniciens" },
+    { title: "Alertes", icon: Bell, path: "/alerts" },
   ];
   
   // Autres liens
