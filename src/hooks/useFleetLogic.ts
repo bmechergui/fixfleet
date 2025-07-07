@@ -100,7 +100,8 @@ const initialMaintenanceRecords: MaintenanceRecord[] = [
     description: "Vidange complète avec remplacement du filtre à huile.",
     category: "preventive",
     cost: "120 €",
-    actualDuration: 1.5
+    actualDuration: 1.5,
+    workflowStage: "closure"
   },
   {
     id: "M-002",
@@ -114,6 +115,11 @@ const initialMaintenanceRecords: MaintenanceRecord[] = [
     description: "Diagnostic système injection.",
     category: "corrective",
     urgency: "haute",
+    isUrgent: true,
+    isImportant: true,
+    eisenhowerCategory: "urgent-important",
+    requestedBy: "Chef d'atelier",
+    workflowStage: "execution",
     estimatedDuration: 3,
     workshopBay: "B2"
   },
@@ -126,7 +132,12 @@ const initialMaintenanceRecords: MaintenanceRecord[] = [
     status: "planned",
     description: "Vidange complète.",
     category: "preventive",
-    estimatedDuration: 1
+    estimatedDuration: 1,
+    isUrgent: false,
+    isImportant: true,
+    eisenhowerCategory: "important-not-urgent",
+    requestedBy: "Conducteur",
+    workflowStage: "analysis"
   }
 ];
 
