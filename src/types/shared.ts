@@ -47,6 +47,12 @@ export interface MaintenanceRecord {
   description: string;
   category: "preventive" | "corrective" | "periodic" | "predictive";
   urgency?: "haute" | "moyenne" | "faible";
+  isUrgent?: boolean;
+  isImportant?: boolean;
+  eisenhowerCategory?: "urgent-important" | "important-not-urgent" | "urgent-not-important" | "not-urgent-not-important";
+  requestedBy?: string;
+  requestDate?: string;
+  workflowStage?: "request" | "analysis" | "planning" | "work-order" | "execution" | "closure";
   cost?: string;
   estimatedDuration?: number; // en heures
   actualDuration?: number;
@@ -55,6 +61,34 @@ export interface MaintenanceRecord {
   nextMaintenanceDate?: string;
   parts?: MaintenancePart[];
   tasks?: MaintenanceTask[];
+  workOrder?: WorkOrder;
+  completionPercentage?: number;
+}
+
+export interface WorkOrder {
+  id: string;
+  maintenanceId: string;
+  title: string;
+  description: string;
+  priority: "high" | "medium" | "low";
+  deadline?: string;
+  createdBy: string;
+  createdAt: string;
+  tasks: WorkOrderTask[];
+  status: "draft" | "active" | "completed" | "cancelled";
+  notes?: string;
+}
+
+export interface WorkOrderTask {
+  id: string;
+  title: string;
+  description: string;
+  status: "pending" | "in-progress" | "completed";
+  assignedTo?: string;
+  estimatedTime: number;
+  actualTime?: number;
+  order: number;
+  dependencies?: string[];
 }
 
 export interface MaintenancePart {
