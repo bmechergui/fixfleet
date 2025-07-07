@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   Hammer,
-  HardHat
+  HardHat,
+  BarChart3 as AnalyticsIcon
 } from "lucide-react";
 import {
   Sidebar,
@@ -54,6 +55,7 @@ export function AppSidebar() {
   const otherMenuItems = [
     { title: "Stock", icon: Package, path: "/inventory" },
     { title: "Finances", icon: CircleDollarSign, path: "/finances" },
+    { title: "Analytics", icon: AnalyticsIcon, path: "/analytics" },
   ];
 
   const getCurrentPath = () => {
