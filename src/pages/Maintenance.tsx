@@ -7,6 +7,8 @@ import { Plus } from "lucide-react";
 import { MaintenanceForm } from "@/components/maintenance/MaintenanceForm";
 import { MaintenanceTable } from "@/components/maintenance/MaintenanceTable";
 import { MaintenanceFilters } from "@/components/maintenance/MaintenanceFilters";
+import { QuickActions } from "@/components/maintenance/QuickActions";
+import { useFleetLogic } from "@/hooks/useFleetLogic";
 import type { Maintenance as MaintenanceType } from "@/types/maintenance";
 
 const maintenances: MaintenanceType[] = [
@@ -109,12 +111,15 @@ export default function Maintenance() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedMaintenanceId, setSelectedMaintenanceId] = useState<string | null>(null);
+  
+  const { state, stats } = useFleetLogic();
 
-  const filteredMaintenances = maintenances.filter(maintenance => {
+  const filteredMaintenances = state.maintenanceRecords.filter(maintenance => {
     const matchesSearch = 
       maintenance.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      maintenance.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      maintenance.mechanic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      maintenance.vehicleName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (maintenance.mechanicName && maintenance.mechanicName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       maintenance.id.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (activeTab === "all") return matchesSearch;
@@ -160,19 +165,58 @@ export default function Maintenance() {
           </Dialog>
         </div>
         
-        <Card>
-          <CardContent className="p-6">
-            <MaintenanceFilters 
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-            <div className="overflow-x-auto">
-              <MaintenanceTable maintenances={filteredMaintenances} />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardContent className="p-6">
+                <MaintenanceFilters 
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                />
+                <div className="overflow-x-auto">
+                  <MaintenanceTable 
+                    maintenances={filteredMaintenances} 
+                    onSelectMaintenance={setSelectedMaintenanceId}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="space-y-4">
+            {selectedMaintenanceId && (
+              <QuickActions 
+                maintenanceId={selectedMaintenanceId}
+                vehicleId={state.maintenanceRecords.find(m => m.id === selectedMaintenanceId)?.vehicleId}
+              />
+            )}
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Maintenances planifiées</span>
+                    <span className="font-semibold">{stats.plannedMaintenances}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">En cours</span>
+                    <span className="font-semibold text-fleet-orange">{stats.inProgressMaintenances}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Mécaniciens disponibles</span>
+                    <span className="font-semibold text-fleet-green">{stats.availableMechanics}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Postes libres</span>
+                    <span className="font-semibold text-fleet-blue">{stats.freeWorkshopBays}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

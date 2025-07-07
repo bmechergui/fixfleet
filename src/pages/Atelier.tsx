@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFleetLogic } from "@/hooks/useFleetLogic";
+import { VehicleStatusBadge } from "@/components/shared/VehicleStatusBadge";
 
 interface Vehicle {
   id: string;
@@ -90,19 +92,39 @@ const Atelier = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  
+  const { state, dispatch, stats } = useFleetLogic();
 
-  const filteredVehicles = vehicles.filter(vehicle => {
+  // Fusionner les données des véhicules avec les maintenances en cours
+  const vehiclesWithMaintenanceInfo = state.vehicles.map(vehicle => {
+    const activeMaintenance = state.maintenanceRecords.find(
+      m => m.vehicleId === vehicle.id && (m.status === "in-progress" || m.status === "planned")
+    );
+    const assignedMechanic = activeMaintenance?.mechanicId 
+      ? state.mechanics.find(m => m.id === activeMaintenance.mechanicId)
+      : null;
+    
+    return {
+      ...vehicle,
+      activeMaintenance,
+      assignedMechanic: assignedMechanic?.name,
+      issue: activeMaintenance?.description || "Aucune maintenance active",
+      bay: activeMaintenance?.workshopBay
+    };
+  });
+
+  const filteredVehicles = vehiclesWithMaintenanceInfo.filter(vehicle => {
     const matchesSearch = 
-      vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${vehicle.brand} ${vehicle.model}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vehicle.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vehicle.issue.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (vehicle.assignedTo && vehicle.assignedTo.toLowerCase().includes(searchTerm.toLowerCase()));
+      (vehicle.assignedMechanic && vehicle.assignedMechanic.toLowerCase().includes(searchTerm.toLowerCase()));
     
     if (activeTab === "all") return matchesSearch;
     else if (activeTab === "in-workshop") return matchesSearch && vehicle.status === "in-workshop";
     else if (activeTab === "waiting") return matchesSearch && vehicle.status === "waiting";
-    else if (activeTab === "completed") return matchesSearch && vehicle.status === "completed";
+    else if (activeTab === "completed") return matchesSearch && vehicle.status === "active";
     
     return matchesSearch;
   });
@@ -126,9 +148,9 @@ const Atelier = () => {
               <Wrench className="h-4 w-4 text-fleet-orange" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-fleet-orange">2</div>
+              <div className="text-2xl font-bold text-fleet-orange">{stats.vehiclesInWorkshop}</div>
               <p className="text-xs text-muted-foreground mt-2">
-                Emplacements occupés: 2/6
+                Emplacements occupés: {state.workshopBays.filter(b => b.status === "occupied").length}/{state.workshopBays.length}
               </p>
             </CardContent>
           </Card>
@@ -141,7 +163,7 @@ const Atelier = () => {
               <Car className="h-4 w-4 text-fleet-blue" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-fleet-blue">2</div>
+              <div className="text-2xl font-bold text-fleet-blue">{stats.vehiclesWaiting}</div>
               <p className="text-xs text-muted-foreground mt-2">
                 Véhicules en file d'attente
               </p>
@@ -156,9 +178,9 @@ const Atelier = () => {
               <CheckCircle2 className="h-4 w-4 text-fleet-green" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-fleet-green">1</div>
+              <div className="text-2xl font-bold text-fleet-green">{state.maintenanceRecords.filter(m => m.status === "completed").length}</div>
               <p className="text-xs text-muted-foreground mt-2">
-                Véhicules sortis aujourd'hui
+                Maintenances terminées
               </p>
             </CardContent>
           </Card>
@@ -211,12 +233,12 @@ const Atelier = () => {
                   {filteredVehicles.map((vehicle) => (
                     <TableRow key={vehicle.id}>
                       <TableCell className="font-medium">{vehicle.id}</TableCell>
-                      <TableCell>{vehicle.name} ({vehicle.licensePlate})</TableCell>
+                      <TableCell>{vehicle.brand} {vehicle.model} ({vehicle.registrationNumber})</TableCell>
                       <TableCell>{vehicle.issue}</TableCell>
-                      <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
-                      <TableCell>{vehicle.entryDate}</TableCell>
-                      <TableCell>{vehicle.exitDate || "-"}</TableCell>
-                      <TableCell>{vehicle.assignedTo || "-"}</TableCell>
+                      <TableCell><VehicleStatusBadge status={vehicle.status} /></TableCell>
+                      <TableCell>{vehicle.activeMaintenance?.date || "-"}</TableCell>
+                      <TableCell>-</TableCell>
+                      <TableCell>{vehicle.assignedMechanic || "-"}</TableCell>
                       <TableCell>{vehicle.bay || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -226,7 +248,7 @@ const Atelier = () => {
                               size="sm" 
                               className="text-xs"
                               onClick={() => {
-                                setSelectedVehicle(vehicle);
+                                setSelectedVehicleId(vehicle.id);
                                 setIsAssignDialogOpen(true);
                               }}
                             >
@@ -239,19 +261,25 @@ const Atelier = () => {
                               variant="outline" 
                               size="sm"
                               className="text-xs text-fleet-green border-fleet-green"
+                              onClick={() => {
+                                if (vehicle.activeMaintenance) {
+                                  dispatch({
+                                    type: "COMPLETE_MAINTENANCE",
+                                    payload: {
+                                      maintenanceId: vehicle.activeMaintenance.id,
+                                      cost: "0 €",
+                                      actualDuration: 2
+                                    }
+                                  });
+                                  dispatch({
+                                    type: "UPDATE_VEHICLE_STATUS",
+                                    payload: { vehicleId: vehicle.id, status: "active" }
+                                  });
+                                }
+                              }}
                             >
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Terminer
-                            </Button>
-                          )}
-                          {vehicle.status === "completed" && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-xs"
-                            >
-                              <ArrowLeft className="h-3 w-3 mr-1" />
-                              Archiver
                             </Button>
                           )}
                         </div>
@@ -270,7 +298,10 @@ const Atelier = () => {
           <DialogHeader>
             <DialogTitle>Assigner un véhicule à l'atelier</DialogTitle>
             <DialogDescription>
-              {selectedVehicle && `Véhicule: ${selectedVehicle.name} (${selectedVehicle.licensePlate})`}
+              {selectedVehicleId && (() => {
+                const vehicle = state.vehicles.find(v => v.id === selectedVehicleId);
+                return vehicle ? `Véhicule: ${vehicle.brand} ${vehicle.model} (${vehicle.registrationNumber})` : '';
+              })()}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -281,12 +312,9 @@ const Atelier = () => {
                   <SelectValue placeholder="Sélectionner un emplacement" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="a1">A1</SelectItem>
-                  <SelectItem value="a2">A2</SelectItem>
-                  <SelectItem value="b1">B1</SelectItem>
-                  <SelectItem value="b2">B2</SelectItem>
-                  <SelectItem value="c1">C1</SelectItem>
-                  <SelectItem value="c2">C2</SelectItem>
+                  {state.workshopBays.filter(bay => bay.status === "free").map(bay => (
+                    <SelectItem key={bay.id} value={bay.id}>{bay.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -297,10 +325,9 @@ const Atelier = () => {
                   <SelectValue placeholder="Sélectionner un mécanicien" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pierre">Pierre Martin</SelectItem>
-                  <SelectItem value="sophie">Sophie Durand</SelectItem>
-                  <SelectItem value="jean">Jean Dubois</SelectItem>
-                  <SelectItem value="marie">Marie Lambert</SelectItem>
+                  {state.mechanics.filter(mechanic => mechanic.status === "available").map(mechanic => (
+                    <SelectItem key={mechanic.id} value={mechanic.id}>{mechanic.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

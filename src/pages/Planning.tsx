@@ -12,16 +12,22 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useFleetLogic } from "@/hooks/useFleetLogic";
+import { toast } from "@/hooks/use-toast";
 
 const Planning = () => {
   const [isCompleted, setIsCompleted] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState("");
-  const [selectedMechanic, setSelectedMechanic] = useState("");
-  const [selectedWorkshop, setSelectedWorkshop] = useState("");
-  const [maintenanceId, setMaintenanceId] = useState("");
+  const [selectedVehicleId, setSelectedVehicleId] = useState("");
+  const [selectedMechanicId, setSelectedMechanicId] = useState("");
+  const [selectedWorkshopBayId, setSelectedWorkshopBayId] = useState("");
+  const [selectedMaintenanceId, setSelectedMaintenanceId] = useState("");
   const [planningDate, setPlanningDate] = useState("");
+  const [planningTime, setPlanningTime] = useState("09:00");
+  const [estimatedDuration, setEstimatedDuration] = useState("2");
   const [cost, setCost] = useState("");
   const [agendaDate, setAgendaDate] = useState<Date | undefined>(new Date());
+  
+  const { state, dispatch, stats } = useFleetLogic();
 
   const documents = [
     { type: "Assurance", expiration: "15/06/2025", status: "Valide" },
@@ -35,6 +41,77 @@ const Planning = () => {
     }
     return <Badge variant="destructive">À renouveler</Badge>;
   };
+
+  const handleScheduleMaintenance = () => {
+    if (!selectedMaintenanceId || !selectedVehicleId || !selectedMechanicId || !selectedWorkshopBayId || !planningDate) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isCompleted) {
+      // Terminer la maintenance directement
+      dispatch({
+        type: "COMPLETE_MAINTENANCE",
+        payload: {
+          maintenanceId: selectedMaintenanceId,
+          cost: cost || "0 €",
+          actualDuration: parseFloat(estimatedDuration)
+        }
+      });
+      dispatch({
+        type: "UPDATE_VEHICLE_STATUS",
+        payload: { vehicleId: selectedVehicleId, status: "active" }
+      });
+    } else {
+      // Planifier la maintenance
+      dispatch({
+        type: "SCHEDULE_MAINTENANCE",
+        payload: {
+          maintenanceId: selectedMaintenanceId,
+          vehicleId: selectedVehicleId,
+          mechanicId: selectedMechanicId,
+          workshopBayId: selectedWorkshopBayId,
+          scheduledDate: planningDate,
+          scheduledTime: planningTime,
+          estimatedDuration: parseFloat(estimatedDuration),
+          status: "scheduled"
+        }
+      });
+      
+      dispatch({
+        type: "ASSIGN_MECHANIC",
+        payload: { maintenanceId: selectedMaintenanceId, mechanicId: selectedMechanicId }
+      });
+      
+      dispatch({
+        type: "ASSIGN_WORKSHOP_BAY",
+        payload: { maintenanceId: selectedMaintenanceId, bayId: selectedWorkshopBayId }
+      });
+    }
+
+    toast({
+      title: "Succès",
+      description: isCompleted ? "Maintenance terminée avec succès" : "Maintenance planifiée avec succès"
+    });
+
+    // Reset form
+    setSelectedMaintenanceId("");
+    setSelectedVehicleId("");
+    setSelectedMechanicId("");
+    setSelectedWorkshopBayId("");
+    setPlanningDate("");
+    setCost("");
+    setIsCompleted(false);
+  };
+
+  // Obtenir les maintenances non planifiées
+  const unscheduledMaintenances = state.maintenanceRecords.filter(m => 
+    m.status === "planned" && !state.planningEntries.find(p => p.maintenanceId === m.id)
+  );
 
   return (
     <DashboardLayout>
@@ -53,63 +130,97 @@ const Planning = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="maintenanceId">ID Maintenance</Label>
-                <Input 
-                  id="maintenanceId" 
-                  placeholder="Entrer l'ID de maintenance"
-                  value={maintenanceId}
-                  onChange={(e) => setMaintenanceId(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="vehicle">Véhicule</Label>
-                <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
+                <Label htmlFor="maintenanceId">Maintenance à planifier</Label>
+                <Select value={selectedMaintenanceId} onValueChange={setSelectedMaintenanceId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un véhicule" />
+                    <SelectValue placeholder="Sélectionner une maintenance" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="clio">Renault Clio (AB-123-CD)</SelectItem>
-                    <SelectItem value="308">Peugeot 308 (EF-456-GH)</SelectItem>
-                    <SelectItem value="c3">Citroën C3 (IJ-789-KL)</SelectItem>
+                    {unscheduledMaintenances.map((maintenance) => (
+                      <SelectItem key={maintenance.id} value={maintenance.id}>
+                        {maintenance.id} - {maintenance.type} ({maintenance.vehicleName})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date">Date planifiée</Label>
+                <Label htmlFor="vehicle">Véhicule</Label>
+                <Select value={selectedVehicleId} onValueChange={setSelectedVehicleId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un véhicule" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {state.vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.brand} {vehicle.model} ({vehicle.registrationNumber})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date planifiée</Label>
+                  <Input 
+                    id="date" 
+                    type="date" 
+                    value={planningDate}
+                    onChange={(e) => setPlanningDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="time">Heure</Label>
+                  <Input 
+                    id="time" 
+                    type="time" 
+                    value={planningTime}
+                    onChange={(e) => setPlanningTime(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="duration">Durée estimée (heures)</Label>
                 <Input 
-                  id="date" 
-                  type="date" 
-                  value={planningDate}
-                  onChange={(e) => setPlanningDate(e.target.value)}
+                  id="duration" 
+                  type="number" 
+                  step="0.5"
+                  value={estimatedDuration}
+                  onChange={(e) => setEstimatedDuration(e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="workshop">Atelier</Label>
-                <Select value={selectedWorkshop} onValueChange={setSelectedWorkshop}>
+                <Label htmlFor="workshop">Emplacement atelier</Label>
+                <Select value={selectedWorkshopBayId} onValueChange={setSelectedWorkshopBayId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un atelier" />
+                    <SelectValue placeholder="Sélectionner un emplacement" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="atelier1">Atelier Central</SelectItem>
-                    <SelectItem value="atelier2">Atelier Nord</SelectItem>
-                    <SelectItem value="atelier3">Atelier Sud</SelectItem>
+                    {state.workshopBays.filter(bay => bay.status === "free").map((bay) => (
+                      <SelectItem key={bay.id} value={bay.id}>
+                        {bay.name} - {bay.type}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="mechanic">Mécanicien assigné</Label>
-                <Select value={selectedMechanic} onValueChange={setSelectedMechanic}>
+                <Select value={selectedMechanicId} onValueChange={setSelectedMechanicId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un mécanicien" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pierre">Pierre Martin</SelectItem>
-                    <SelectItem value="sophie">Sophie Durand</SelectItem>
-                    <SelectItem value="jean">Jean Dubois</SelectItem>
+                    {state.mechanics.filter(mechanic => mechanic.status === "available" || mechanic.currentAssignments < 3).map((mechanic) => (
+                      <SelectItem key={mechanic.id} value={mechanic.id}>
+                        {mechanic.name} - {mechanic.speciality} ({mechanic.currentAssignments} tâches)
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -143,36 +254,54 @@ const Planning = () => {
                 </div>
               )}
 
-              <Button className="w-full">Planifier l'intervention</Button>
+              <Button className="w-full" onClick={handleScheduleMaintenance}>
+                {isCompleted ? "Terminer la maintenance" : "Planifier l'intervention"}
+              </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Documents du véhicule
+                Statistiques de planification
               </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document</TableHead>
-                    <TableHead>Expiration</TableHead>
-                    <TableHead>Statut</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.map((doc, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{doc.type}</TableCell>
-                      <TableCell>{doc.expiration}</TableCell>
-                      <TableCell>{getStatusBadge(doc.status)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-fleet-blue">{stats.plannedMaintenances}</div>
+                  <p className="text-xs text-muted-foreground">Maintenances planifiées</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-fleet-orange">{stats.inProgressMaintenances}</div>
+                  <p className="text-xs text-muted-foreground">En cours</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-fleet-green">{stats.availableMechanics}</div>
+                  <p className="text-xs text-muted-foreground">Mécaniciens libres</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-fleet-purple">{stats.freeWorkshopBays}</div>
+                  <p className="text-xs text-muted-foreground">Postes libres</p>
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">Prochaines planifications</h4>
+                {state.planningEntries.filter(p => p.status === "scheduled").slice(0, 3).map((planning) => {
+                  const maintenance = state.maintenanceRecords.find(m => m.id === planning.maintenanceId);
+                  const vehicle = state.vehicles.find(v => v.id === planning.vehicleId);
+                  return (
+                    <div key={planning.id} className="text-xs p-2 bg-muted rounded mb-1">
+                      <div className="font-medium">{maintenance?.type}</div>
+                      <div className="text-muted-foreground">
+                        {vehicle?.brand} {vehicle?.model} - {planning.scheduledDate} à {planning.scheduledTime}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </div>

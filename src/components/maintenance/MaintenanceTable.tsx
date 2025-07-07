@@ -4,9 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Edit, CheckCircle2 } from "lucide-react";
 import { Maintenance } from "@/types/maintenance";
+import type { MaintenanceRecord } from "@/types/shared";
 import { useState } from "react";
 import { WorkOrderDialog } from "./WorkOrderDialog";
 import { MaintenanceDetailsDialog } from "./MaintenanceDetailsDialog";
+import { MaintenanceStatusBadge } from "@/components/shared/MaintenanceStatusBadge";
+import { UrgencyBadge } from "@/components/shared/UrgencyBadge";
 
 // Ajout badge urgence
 const getUrgencyBadge = (urgency?: Maintenance['urgency']) => {
@@ -23,7 +26,8 @@ const getUrgencyBadge = (urgency?: Maintenance['urgency']) => {
 };
 
 interface MaintenanceTableProps {
-  maintenances: Maintenance[];
+  maintenances: (Maintenance | MaintenanceRecord)[];
+  onSelectMaintenance?: (id: string) => void;
 }
 
 export const getCategoryBadge = (category: Maintenance['category']) => {
@@ -54,7 +58,7 @@ export const getStatusBadge = (status: Maintenance['status']) => {
   }
 };
 
-export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
+export function MaintenanceTable({ maintenances, onSelectMaintenance }: MaintenanceTableProps) {
   const [workOrderOpen, setWorkOrderOpen] = useState(false);
   const [selectedMaintenance, setSelectedMaintenance] = useState<string | null>(null);
 
@@ -89,43 +93,64 @@ export function MaintenanceTable({ maintenances }: MaintenanceTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {maintenances.map((maintenance) => (
-            <TableRow key={maintenance.id}>
-              <TableCell className="font-medium">{maintenance.id}</TableCell>
-              <TableCell>{maintenance.type}</TableCell>
-              <TableCell>{maintenance.vehicle}</TableCell>
-              <TableCell>{maintenance.date}</TableCell>
-              <TableCell>{getCategoryBadge(maintenance.category)}</TableCell>
-              <TableCell>{getUrgencyBadge(maintenance.urgency)}</TableCell>
-              <TableCell>{getStatusBadge(maintenance.status)}</TableCell>
-              <TableCell>{maintenance.mechanic}</TableCell>
-              <TableCell>{maintenance.cost || "-"}</TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" title="Voir les détails" onClick={() => handleOpenDetails(maintenance)}>
-                    <FileText className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" title="Modifier">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  {maintenance.status !== "completed" && (
-                    <Button variant="ghost" size="icon" title="Marquer comme terminé">
-                      <CheckCircle2 className="h-4 w-4 text-fleet-green" />
+          {maintenances.map((maintenance) => {
+            const vehicleName = 'vehicleName' in maintenance ? maintenance.vehicleName : maintenance.vehicle;
+            const mechanicName = 'mechanicName' in maintenance ? maintenance.mechanicName : ('mechanic' in maintenance ? maintenance.mechanic : undefined);
+            
+            return (
+              <TableRow 
+                key={maintenance.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => onSelectMaintenance?.(maintenance.id)}
+              >
+                <TableCell className="font-medium">{maintenance.id}</TableCell>
+                <TableCell>{maintenance.type}</TableCell>
+                <TableCell>{vehicleName}</TableCell>
+                <TableCell>{maintenance.date}</TableCell>
+                <TableCell>{getCategoryBadge(maintenance.category)}</TableCell>
+                <TableCell><UrgencyBadge urgency={maintenance.urgency} /></TableCell>
+                <TableCell><MaintenanceStatusBadge status={maintenance.status} /></TableCell>
+                <TableCell>{mechanicName || "Non assigné"}</TableCell>
+                <TableCell>{maintenance.cost || "-"}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" title="Voir les détails" onClick={(e) => {
+                      e.stopPropagation();
+                      // Pour l'instant, on convertit vers l'ancien format
+                      const maintenanceForDialog: Maintenance = {
+                        ...maintenance,
+                        vehicle: vehicleName || '',
+                        mechanic: mechanicName || '',
+                      } as Maintenance;
+                      handleOpenDetails(maintenanceForDialog);
+                    }}>
+                      <FileText className="h-4 w-4" />
                     </Button>
-                  )}
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="ml-1"
-                    title="Créer un ordre de travail"
-                    onClick={() => handleOpenWorkOrder(maintenance.id)}
-                  >
-                    Workflow OT
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+                    <Button variant="ghost" size="icon" title="Modifier" onClick={(e) => e.stopPropagation()}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    {maintenance.status !== "completed" && (
+                      <Button variant="ghost" size="icon" title="Marquer comme terminé" onClick={(e) => e.stopPropagation()}>
+                        <CheckCircle2 className="h-4 w-4 text-fleet-green" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="ml-1"
+                      title="Créer un ordre de travail"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenWorkOrder(maintenance.id);
+                      }}
+                    >
+                      Workflow OT
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
       <WorkOrderDialog
