@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FleetProvider } from "@/hooks/useFleet";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import Drivers from "./pages/Drivers";
@@ -17,12 +18,14 @@ import Mecaniciens from "./pages/Mecaniciens";
 import Inventory from "./pages/Inventory";
 import Finances from "./pages/Finances";
 import Analytics from "./pages/Analytics";
+import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <AuthProvider>
     <FleetProvider>
     <TooltipProvider>
       <Toaster />
@@ -41,12 +44,14 @@ const App = () => (
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/finances" element={<Finances />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/users" element={<Users />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
     </FleetProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

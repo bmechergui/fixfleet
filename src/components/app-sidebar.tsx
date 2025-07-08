@@ -12,7 +12,8 @@ import {
   LogOut,
   Hammer,
   HardHat,
-  BarChart3 as AnalyticsIcon
+  BarChart3 as AnalyticsIcon,
+  Users as UsersIcon
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,8 +29,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 export function AppSidebar() {
+  const { hasPermission } = useAuth();
+  
   // Réorganisation des liens du menu principal
   const mainMenuItems = [
     { title: "Tableau de bord", icon: BarChart3, path: "/" },
@@ -56,6 +61,7 @@ export function AppSidebar() {
     { title: "Stock", icon: Package, path: "/inventory" },
     { title: "Finances", icon: CircleDollarSign, path: "/finances" },
     { title: "Analytics", icon: AnalyticsIcon, path: "/analytics" },
+    { title: "Utilisateurs", icon: UsersIcon, path: "/users", permission: "users.read" },
   ];
 
   const getCurrentPath = () => {
@@ -147,6 +153,11 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {otherMenuItems.map((item) => {
+                // Vérifier les permissions si nécessaire
+                if (item.permission && !hasPermission(item.permission)) {
+                  return null;
+                }
+                
                 const isActive = getCurrentPath() === item.path;
                 return (
                   <SidebarMenuItem key={item.title}>

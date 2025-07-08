@@ -1,11 +1,10 @@
-
 import React from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { UserSwitcher } from "@/components/auth/UserSwitcher";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -50,10 +49,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback>AD</AvatarFallback>
-              </Avatar>
+              <UserSwitcher />
             </div>
           </header>
           <main className="flex-1 overflow-y-auto p-6">
