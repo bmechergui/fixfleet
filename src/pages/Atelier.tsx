@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFleetLogic } from "@/hooks/useFleetLogic";
+import { useFleet } from "@/hooks/useFleet";
 import { VehicleStatusBadge } from "@/components/shared/VehicleStatusBadge";
 
 interface Vehicle {
@@ -94,7 +94,7 @@ const Atelier = () => {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   
-  const { state, dispatch, stats } = useFleetLogic();
+  const { state, dispatch, stats } = useFleet();
 
   // Fusionner les données des véhicules avec les maintenances en cours
   const vehiclesWithMaintenanceInfo = state.vehicles.map(vehicle => {

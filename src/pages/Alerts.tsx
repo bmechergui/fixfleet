@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertSeverityBadge } from "@/components/shared/AlertSeverityBadge";
+import { AlertStatusBadge } from "@/components/shared/AlertStatusBadge";
 
 interface Alert {
   id: string;
@@ -72,32 +74,6 @@ const alerts: Alert[] = [
     status: "resolved"
   },
 ];
-
-const getSeverityBadge = (severity: Alert['severity']) => {
-  switch (severity) {
-    case "high":
-      return <Badge variant="destructive">Urgente</Badge>;
-    case "medium":
-      return <Badge variant="destructive" className="bg-orange-500">Moyenne</Badge>;
-    case "low":
-      return <Badge variant="outline" className="border-blue-500 text-blue-500">Faible</Badge>;
-    default:
-      return null;
-  }
-};
-
-const getStatusBadge = (status: Alert['status']) => {
-  switch (status) {
-    case "new":
-      return <Badge variant="outline" className="border-red-500 text-red-500">Nouvelle</Badge>;
-    case "acknowledged":
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-500">En traitement</Badge>;
-    case "resolved":
-      return <Badge variant="outline" className="border-green-500 text-green-500">Résolue</Badge>;
-    default:
-      return null;
-  }
-};
 
 const Alerts = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -223,8 +199,8 @@ const Alerts = () => {
                       <TableCell>{alert.vehicle}</TableCell>
                       <TableCell>{alert.message}</TableCell>
                       <TableCell>{alert.date}</TableCell>
-                      <TableCell>{getSeverityBadge(alert.severity)}</TableCell>
-                      <TableCell>{getStatusBadge(alert.status)}</TableCell>
+                      <TableCell><AlertSeverityBadge severity={alert.severity} /></TableCell>
+                      <TableCell><AlertStatusBadge status={alert.status} /></TableCell>
                       <TableCell>{alert.dueDate || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

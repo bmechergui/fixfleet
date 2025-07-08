@@ -13,7 +13,7 @@ import { MaintenanceRequestForm } from "@/components/maintenance/MaintenanceRequ
 import { EisenhowerMatrix } from "@/components/maintenance/EisenhowerMatrix";
 import { WorkOrderCreation } from "@/components/maintenance/WorkOrderCreation";
 import { TaskTracker } from "@/components/maintenance/TaskTracker";
-import { useFleetLogic } from "@/hooks/useFleetLogic";
+import { useFleet } from "@/hooks/useFleet";
 import { toast } from "@/hooks/use-toast";
 import type { Maintenance as MaintenanceType } from "@/types/maintenance";
 import type { MaintenanceRecord, WorkOrder } from "@/types/shared";
@@ -123,7 +123,7 @@ export default function Maintenance() {
   const [selectedMaintenanceForWorkflow, setSelectedMaintenanceForWorkflow] = useState<MaintenanceRecord | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   
-  const { state, dispatch, stats } = useFleetLogic();
+  const { state, dispatch, stats } = useFleet();
 
   const filteredMaintenances = state.maintenanceRecords.filter(maintenance => {
     const matchesSearch = 

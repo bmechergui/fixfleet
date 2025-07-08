@@ -1,20 +1,8 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { UrgencyBadge } from "@/components/shared/UrgencyBadge";
 import type { Maintenance } from "@/types/maintenance";
-
-const getUrgencyBadge = (urgency?: Maintenance['urgency']) => {
-  switch (urgency) {
-    case "haute":
-      return <span className="text-red-600 font-bold ml-2">Haute</span>;
-    case "moyenne":
-      return <span className="text-orange-500 font-bold ml-2">Moyenne</span>;
-    case "faible":
-      return <span className="text-blue-600 font-bold ml-2">Faible</span>;
-    default:
-      return <span className="text-muted ml-2">-</span>;
-  }
-};
 
 interface MaintenanceDetailsDialogProps {
   open: boolean;
@@ -44,7 +32,7 @@ export function MaintenanceDetailsDialog({
           <div><span className="font-bold">Date :</span> {maintenance.date}</div>
           <div><span className="font-bold">Catégorie :</span> {maintenance.category}</div>
           <div>
-            <span className="font-bold">Urgence :</span> {getUrgencyBadge(maintenance.urgency)}
+            <span className="font-bold">Urgence :</span> <UrgencyBadge urgency={maintenance.urgency} />
           </div>
           <div><span className="font-bold">Statut :</span> {maintenance.status}</div>
           <div><span className="font-bold">Mécanicien :</span> {maintenance.mechanic}</div>

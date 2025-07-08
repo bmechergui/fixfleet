@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { FleetProvider } from "@/hooks/useFleet";
 import Index from "./pages/Index";
 import Vehicles from "./pages/Vehicles";
 import Drivers from "./pages/Drivers";
@@ -22,6 +23,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <FleetProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -44,6 +46,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </FleetProvider>
   </QueryClientProvider>
 );
 

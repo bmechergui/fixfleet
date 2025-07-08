@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { useFleetLogic } from "@/hooks/useFleetLogic";
+import { useFleet } from "@/hooks/useFleet";
 import { toast } from "@/hooks/use-toast";
 
 const Planning = () => {
@@ -27,7 +27,7 @@ const Planning = () => {
   const [cost, setCost] = useState("");
   const [agendaDate, setAgendaDate] = useState<Date | undefined>(new Date());
   
-  const { state, dispatch, stats } = useFleetLogic();
+  const { state, dispatch, stats } = useFleet();
 
   const documents = [
     { type: "Assurance", expiration: "15/06/2025", status: "Valide" },
