@@ -65,15 +65,15 @@ export default {
 				},
 				// Fleet management specific colors
 				fleet: {
-					blue: '#1a56db',
-					lightBlue: '#3f83f8',
-					navy: '#0f172a',
-					green: '#059669',
-					red: '#dc2626',
-					orange: '#ea580c',
-					yellow: '#eab308',
-					gray: '#6b7280',
-					lightGray: '#e5e7eb'
+					blue: 'hsl(220, 91%, 48%)',
+					lightBlue: 'hsl(217, 91%, 60%)',
+					navy: 'hsl(222, 84%, 5%)',
+					green: 'hsl(160, 84%, 39%)',
+					red: 'hsl(0, 84%, 51%)',
+					orange: 'hsl(20, 91%, 48%)',
+					yellow: 'hsl(48, 89%, 50%)',
+					gray: 'hsl(220, 9%, 46%)',
+					lightGray: 'hsl(220, 13%, 91%)'
 				}
 			},
 			borderRadius: {
