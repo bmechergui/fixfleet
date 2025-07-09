@@ -3,20 +3,20 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, BarChart3, FileText, CheckCircle2 } from "lucide-react";
+import { Plus, BarChart3, FileText, CheckCircle2, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MaintenanceForm } from "@/components/maintenance/MaintenanceForm";
 import { MaintenanceTable } from "@/components/maintenance/MaintenanceTable";
 import { MaintenanceFilters } from "@/components/maintenance/MaintenanceFilters";
 import { QuickActions } from "@/components/maintenance/QuickActions";
 import { MaintenanceRequestForm } from "@/components/maintenance/MaintenanceRequestForm";
 import { EisenhowerMatrix } from "@/components/maintenance/EisenhowerMatrix";
-import { WorkOrderCreation } from "@/components/maintenance/WorkOrderCreation";
 import { TaskTracker } from "@/components/maintenance/TaskTracker";
 import { useFleet } from "@/hooks/useFleet";
 import { toast } from "@/hooks/use-toast";
 import type { Maintenance as MaintenanceType } from "@/types/maintenance";
 import type { MaintenanceRecord, WorkOrder } from "@/types/shared";
+import { MaintenanceForm } from "@/components/maintenance/MaintenanceForm";
+import { PlanningForm } from "@/components/maintenance/PlanningForm";
 
 const maintenances: MaintenanceType[] = [
   { 
@@ -122,8 +122,11 @@ export default function Maintenance() {
   const [currentView, setCurrentView] = useState<"list" | "request" | "analysis" | "planning" | "work-order" | "tracking">("list");
   const [selectedMaintenanceForWorkflow, setSelectedMaintenanceForWorkflow] = useState<MaintenanceRecord | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [isPlanningDialogOpen, setIsPlanningDialogOpen] = useState(false);
   
   const { state, dispatch, stats } = useFleet();
+  const { vehicles, mechanics } = state;
 
   const filteredMaintenances = state.maintenanceRecords.filter(maintenance => {
     const matchesSearch = 
@@ -184,7 +187,7 @@ export default function Maintenance() {
     const maintenance = state.maintenanceRecords.find(m => m.id === maintenanceId);
     if (maintenance) {
       setSelectedMaintenanceForWorkflow(maintenance);
-      setCurrentView("work-order");
+      setCurrentView("planning");
     }
   };
 
@@ -267,9 +270,21 @@ export default function Maintenance() {
     switch (currentView) {
       case "request":
         return (
-          <MaintenanceRequestForm
-            onSubmit={handleNewRequest}
-            vehicles={state.vehicles}
+          <MaintenanceForm
+            onSubmit={(data) => {
+              dispatch({
+                type: "CREATE_MAINTENANCE",
+                payload: {
+                  ...data,
+                  id: `M-${Date.now()}`,
+                  status: data.status || "planned",
+                  vehicleName: data.vehicle || "",
+                  mechanicName: data.mechanic || "",
+                },
+              });
+              toast({ title: "Maintenance ajoutée", description: "La maintenance a été ajoutée avec succès." });
+              setCurrentView("list");
+            }}
           />
         );
       
@@ -282,12 +297,32 @@ export default function Maintenance() {
           />
         );
       
+      case "planning":
+        return (
+          <PlanningForm
+            onSubmit={(data) => {
+              dispatch({
+                type: "CREATE_MAINTENANCE",
+                payload: {
+                  ...data,
+                  id: `M-${Date.now()}`,
+                  status: "planned",
+                  vehicleName: data.vehicle || "",
+                  mechanicName: data.mechanic || "",
+                },
+              });
+              toast({ title: "Intervention planifiée", description: "L'intervention a été planifiée avec succès." });
+              setCurrentView("list");
+            }}
+          />
+        );
+      
       case "work-order":
         return selectedMaintenanceForWorkflow ? (
-          <WorkOrderCreation
-            maintenance={selectedMaintenanceForWorkflow}
-            onCreateWorkOrder={handleCreateWorkOrder}
-            mechanics={state.mechanics}
+          <TaskTracker
+            workOrder={selectedMaintenanceForWorkflow.workOrder}
+            onUpdateTask={handleUpdateTask}
+            onCompleteWorkOrder={handleCompleteWorkOrder}
           />
         ) : null;
       
@@ -302,61 +337,54 @@ export default function Maintenance() {
       
       default:
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardContent className="p-6">
-                  <MaintenanceFilters 
-                    searchTerm={searchTerm}
-                    onSearchChange={setSearchTerm}
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                  />
-                  <div className="overflow-x-auto">
-                    <MaintenanceTable 
-                      maintenances={filteredMaintenances} 
-                      onSelectMaintenance={setSelectedMaintenanceId}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="space-y-4">
-              {selectedMaintenanceId && (
-                <QuickActions 
-                  maintenanceId={selectedMaintenanceId}
-                  vehicleId={state.maintenanceRecords.find(m => m.id === selectedMaintenanceId)?.vehicleId}
-                />
-              )}
-              
-              <Card>
+          <Card>
+            <CardContent className="p-6">
+              <Card className="mb-4">
                 <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
+                  <div className="flex gap-8 justify-between">
+                    <div className="flex flex-col items-center">
                       <span className="text-sm text-muted-foreground">Maintenances planifiées</span>
                       <span className="font-semibold">{stats.plannedMaintenances}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col items-center">
                       <span className="text-sm text-muted-foreground">En cours</span>
                       <span className="font-semibold text-fleet-orange">{stats.inProgressMaintenances}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col items-center">
                       <span className="text-sm text-muted-foreground">Mécaniciens disponibles</span>
                       <span className="font-semibold text-fleet-green">{stats.availableMechanics}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Postes libres</span>
-                      <span className="font-semibold text-fleet-blue">{stats.freeWorkshopBays}</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </div>
+              <MaintenanceFilters 
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
+              <div className="overflow-x-auto">
+                <MaintenanceTable 
+                  maintenances={filteredMaintenances} 
+                  onSelectMaintenance={(id) => { setSelectedMaintenanceId(id); setDetailsDialogOpen(true); }}
+                />
+              </div>
+            </CardContent>
+          </Card>
         );
     }
   };
+
+  const selectedMaintenanceRecord = state.maintenanceRecords.find(m => m.id === selectedMaintenanceId) || null;
+  // Adapter pour le dialog :
+  const selectedMaintenance = selectedMaintenanceRecord
+    ? {
+        ...selectedMaintenanceRecord,
+        vehicle: selectedMaintenanceRecord.vehicleName || '',
+        mechanic: selectedMaintenanceRecord.mechanicName || '',
+        status: selectedMaintenanceRecord.status === 'cancelled' ? 'planned' : selectedMaintenanceRecord.status,
+      }
+    : null;
 
   return (
     <DashboardLayout>
@@ -370,7 +398,15 @@ export default function Maintenance() {
               className={currentView === "request" ? "bg-fleet-blue hover:bg-fleet-lightBlue" : ""}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Nouvelle demande
+              Ajouter
+            </Button>
+            <Button
+              variant={currentView === "planning" ? "default" : "outline"}
+              onClick={() => setCurrentView("planning")}
+              className={currentView === "planning" ? "bg-fleet-blue hover:bg-fleet-lightBlue" : ""}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Planification
             </Button>
             <Button 
               variant={currentView === "analysis" ? "default" : "outline"}
@@ -392,6 +428,27 @@ export default function Maintenance() {
         </div>
         
         {renderCurrentView()}
+        {/* Le Dialog principal (detailsDialogOpen) doit afficher uniquement QuickActions */}
+        {selectedMaintenanceRecord && (
+          <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Détails de la maintenance</DialogTitle>
+                <DialogDescription>
+                  Actions rapides pour la maintenance {selectedMaintenanceRecord.type}
+                </DialogDescription>
+              </DialogHeader>
+              <QuickActions 
+                maintenanceId={selectedMaintenanceRecord.id}
+                vehicleId={selectedMaintenanceRecord.vehicleId}
+                onPlanification={() => {
+                  setDetailsDialogOpen(false);
+                  setCurrentView("planning");
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </DashboardLayout>
   );

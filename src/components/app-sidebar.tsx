@@ -31,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import React from "react";
 
 export function AppSidebar() {
   const { hasPermission } = useAuth();
@@ -50,10 +51,9 @@ export function AppSidebar() {
   // Groupe de maintenance - ordre : Maintenance, Planification, Atelier, Mécaniciens, Alertes
   const maintenanceMenuItems = [
     { title: "Maintenance", icon: Wrench, path: "/maintenance" },
-    { title: "Planification", icon: Calendar, path: "/planning" },
     { title: "Atelier", icon: Hammer, path: "/atelier" },
     { title: "Mécaniciens", icon: HardHat, path: "/mecaniciens" },
-    { title: "Alertes", icon: Bell, path: "/alerts" },
+    { title: "Gestion des alarmes", icon: Bell, path: "/alerts" },
   ];
   
   // Autres liens
@@ -128,8 +128,24 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {maintenanceMenuItems.map((item) => {
+              {maintenanceMenuItems.map((item, idx) => {
                 const isActive = getCurrentPath() === item.path;
+                // Ajoute un label 'Alarmes' juste avant 'Gestion des alarmes'
+                if (item.title === "Gestion des alarmes") {
+                  return (
+                    <React.Fragment key={item.title}>
+                      <div className="text-fleet-gray px-2 py-1">Alarmes</div>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild className={`${isActive ? 'bg-fleet-blue text-white' : ''} hover:bg-fleet-lightBlue hover:text-white transition-colors`}>
+                          <Link to={item.path} className="flex items-center">
+                            <item.icon size={20} className="mr-2" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </React.Fragment>
+                  );
+                }
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className={`${isActive ? 'bg-fleet-blue text-white' : ''} hover:bg-fleet-lightBlue hover:text-white transition-colors`}>

@@ -143,6 +143,12 @@ export default function Vehicles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
+
+  const handleCloseDocumentDetail = () => {
+    setSelectedDoc(null);
+    setSelectedVehicleId(null);
+  };
   
   const filteredVehicles = vehicles.filter(vehicle => {
     const searchLower = searchTerm.toLowerCase();
@@ -157,39 +163,47 @@ export default function Vehicles() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Gestion des véhicules</h1>
-          <AddVehicleDialog 
-            open={isAddDialogOpen} 
-            onOpenChange={setIsAddDialogOpen} 
-          />
-        </div>
-        
-        <Card>
-          <CardContent className="p-6">
-            <VehicleSearch 
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
+      {!selectedVehicleId ? (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold tracking-tight">Gestion des véhicules</h1>
+            <AddVehicleDialog 
+              open={isAddDialogOpen} 
+              onOpenChange={setIsAddDialogOpen} 
             />
-            
-            <div className="overflow-x-auto">
-              <VehicleTable
-                vehicles={filteredVehicles}
-                onDocumentsClick={setSelectedVehicleId}
+          </div>
+          
+          <Card>
+            <CardContent className="p-6">
+              <VehicleSearch 
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
               />
-            </div>
-
-            {selectedVehicleId && (
-              <div className="mt-8">
-                <VehicleDocuments 
-                  documents={vehicles.find(v => v.id === selectedVehicleId)?.documents || []} 
+              
+              <div className="overflow-x-auto">
+                <VehicleTable
+                  vehicles={filteredVehicles}
+                  onDocumentsClick={setSelectedVehicleId}
                 />
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              {/* Affiche la liste des documents SEULEMENT si aucun document n'est sélectionné */}
+              {selectedVehicleId && !selectedDoc && (
+                <div className="mt-8">
+                  <VehicleDocuments 
+                    documents={vehicles.find(v => v.id === selectedVehicleId)?.documents || []} 
+                    setSelectedDoc={setSelectedDoc}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <VehicleDocuments
+          documents={vehicles.find(v => v.id === selectedVehicleId)?.documents || []}
+          onBack={() => setSelectedVehicleId(null)}
+        />
+      )}
     </DashboardLayout>
   );
 }

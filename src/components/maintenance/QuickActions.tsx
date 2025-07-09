@@ -7,9 +7,10 @@ import { Link } from "react-router-dom";
 interface QuickActionsProps {
   maintenanceId?: string;
   vehicleId?: string;
+  onPlanification?: () => void;
 }
 
-export function QuickActions({ maintenanceId, vehicleId }: QuickActionsProps) {
+export function QuickActions({ maintenanceId, vehicleId, onPlanification }: QuickActionsProps) {
   const { state, dispatch } = useFleet();
 
   const handleAssignToWorkshop = () => {
@@ -30,6 +31,10 @@ export function QuickActions({ maintenanceId, vehicleId }: QuickActionsProps) {
   };
 
   const handlePlanMaintenance = () => {
+    if (onPlanification) {
+      onPlanification();
+      return;
+    }
     if (maintenanceId && vehicleId) {
       // Trouver un mécanicien disponible
       const availableMechanic = state.mechanics.find(m => m.status === "available");
@@ -72,15 +77,6 @@ export function QuickActions({ maintenanceId, vehicleId }: QuickActionsProps) {
         >
           <Calendar className="h-4 w-4 mr-2" />
           Planifier cette maintenance
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          className="w-full justify-start"
-          onClick={handleAssignToWorkshop}
-        >
-          <ArrowRight className="h-4 w-4 mr-2" />
-          Envoyer à l'atelier
         </Button>
         
         <Link to="/mecaniciens">

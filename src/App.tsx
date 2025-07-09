@@ -11,7 +11,6 @@ import Vehicles from "./pages/Vehicles";
 import Drivers from "./pages/Drivers";
 import Maintenance from "./pages/Maintenance";
 import Groups from "./pages/Groups";
-import Planning from "./pages/Planning";
 import Alerts from "./pages/Alerts";
 import Atelier from "./pages/Atelier";
 import Mecaniciens from "./pages/Mecaniciens";
@@ -37,7 +36,6 @@ const App = () => (
           <Route path="/drivers" element={<Drivers />} />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/groups" element={<Groups />} />
-          <Route path="/planning" element={<Planning />} />
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/atelier" element={<Atelier />} />
           <Route path="/mecaniciens" element={<Mecaniciens />} />

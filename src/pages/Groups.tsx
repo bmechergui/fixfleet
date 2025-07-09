@@ -21,9 +21,7 @@ const Groups = () => {
                   <p>Fonctionnalités à venir:</p>
                   <ul className="list-disc pl-5 mt-2">
                     <li>Création et modification de groupes</li>
-                    <li>Attribution de véhicules aux groupes</li>
                     <li>Statistiques par groupe</li>
-                    <li>Gestion des autorisations par groupe</li>
                   </ul>
                 </div>
               </div>

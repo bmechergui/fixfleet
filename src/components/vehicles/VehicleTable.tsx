@@ -3,8 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash, FileText } from "lucide-react";
+import { MoreHorizontal, Edit, Trash, FileText, Clock, CheckCircle2 } from "lucide-react";
 import type { VehicleType } from "@/types/vehicle";
+import { useState } from "react";
 
 interface VehicleTableProps {
   vehicles: VehicleType[];
@@ -25,6 +26,8 @@ const getStatusBadge = (status: VehicleType['status']) => {
 };
 
 export function VehicleTable({ vehicles, onDocumentsClick }: VehicleTableProps) {
+  // Suppression de la gestion d'état local et des actions, car la colonne d'actions a été retirée
+
   return (
     <Table>
       <TableHeader>
@@ -37,7 +40,6 @@ export function VehicleTable({ vehicles, onDocumentsClick }: VehicleTableProps) 
           <TableHead>Chauffeur</TableHead>
           <TableHead>Groupe</TableHead>
           <TableHead>Statut</TableHead>
-          <TableHead className="w-[50px]"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -60,25 +62,6 @@ export function VehicleTable({ vehicles, onDocumentsClick }: VehicleTableProps) 
             <TableCell>{vehicle.driver}</TableCell>
             <TableCell>{vehicle.group}</TableCell>
             <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="cursor-pointer">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Modifier
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer text-destructive">
-                    <Trash className="h-4 w-4 mr-2" />
-                    Supprimer
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
           </TableRow>
         ))}
       </TableBody>

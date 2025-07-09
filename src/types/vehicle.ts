@@ -5,6 +5,7 @@ export interface VehicleDocument {
   expirationDate: string;
   status: "valid" | "to-renew" | "expired";
   fileUrl?: string;
+  comment?: string;
 }
 
 export interface Vehicle {

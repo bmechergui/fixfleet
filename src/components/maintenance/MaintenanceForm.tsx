@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,27 +5,64 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Form } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Maintenance } from "@/types/maintenance";
+import type { Maintenance } from "@/types/maintenance";
+import React from "react";
 
-export function MaintenanceForm() {
+export interface MaintenanceFormProps {
+  onSubmit?: (data: any) => void;
+}
+
+export function MaintenanceForm({ onSubmit }: MaintenanceFormProps) {
   const [selectedCategory, setSelectedCategory] = useState<Maintenance['category']>("preventive");
   const [basedOn, setBasedOn] = useState<"kilometers" | "time">("kilometers");
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [cost, setCost] = useState("");
+  const [form, setForm] = useState<any>({});
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value as Maintenance['category']);
+    setForm((prev: any) => ({ ...prev, category: value }));
   };
 
   const handleBasedOnChange = (value: string) => {
     setBasedOn(value as "kilometers" | "time");
+    setForm((prev: any) => ({ ...prev, basedOn: value }));
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value, type } = e.target;
+    let fieldValue: string | boolean = value;
+    if (type === "checkbox") {
+      fieldValue = (e.target as HTMLInputElement).checked;
+    }
+    setForm((prev: any) => ({
+      ...prev,
+      [id]: fieldValue,
+    }));
+  };
+
+  const handleSelectChange = (id: string, value: string) => {
+    setForm((prev: any) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSubmit) {
+      onSubmit({
+        ...form,
+        category: selectedCategory,
+        basedOn,
+      });
+    }
   };
 
   return (
-    <div className="grid gap-4 py-4">
+    <>
+      {/* Commentaire explicatif et rappel */}
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded text-blue-900 text-sm">
+        <strong>Rappel :</strong> Veuillez remplir tous les champs afin d'ajouter une nouvelle maintenance. Les informations saisies permettront d'assurer un meilleur suivi et de planifier efficacement les interventions.
+      </div>
+      <form onSubmit={handleSubmit} className="grid gap-4 py-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="id">ID</Label>
@@ -35,19 +71,13 @@ export function MaintenanceForm() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="name">Nom</Label>
-          <Input id="name" placeholder="Nom de la maintenance" />
+          <Input id="name" placeholder="Nom de la maintenance" onChange={handleChange} />
         </div>
       </div>
-      
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <Textarea 
-          id="description" 
-          placeholder="Détails des travaux à effectuer..."
-          rows={3}
-        />
+        <Textarea id="description" placeholder="Détails des travaux à effectuer..." rows={3} onChange={handleChange} />
       </div>
-      
       <div className="space-y-2">
         <Label>Catégorie</Label>
         <ToggleGroup type="single" value={selectedCategory} onValueChange={handleCategoryChange} className="flex flex-wrap gap-2">
@@ -65,7 +95,6 @@ export function MaintenanceForm() {
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
-      
       {selectedCategory === "preventive" && (
         <div className="space-y-3 border p-3 rounded-md">
           <Label>Basée sur</Label>
@@ -79,27 +108,25 @@ export function MaintenanceForm() {
               <Label htmlFor="r2">Temps (date)</Label>
             </div>
           </RadioGroup>
-          
           {basedOn === "kilometers" ? (
             <div className="space-y-2 mt-2">
               <Label htmlFor="kilometers">Kilométrage</Label>
-              <Input id="kilometers" type="number" placeholder="Ex: 10000" />
+              <Input id="kilometers" type="number" placeholder="Ex: 10000" onChange={handleChange} />
             </div>
           ) : (
             <div className="space-y-2 mt-2">
               <Label htmlFor="time">Date</Label>
-              <Input id="time" type="date" />
+              <Input id="time" type="date" onChange={handleChange} />
             </div>
           )}
         </div>
       )}
-      
       {selectedCategory === "periodic" && (
         <div className="space-y-3 border p-3 rounded-md">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="periodicity">Périodicité</Label>
-              <Select>
+              <Select onValueChange={(value) => handleSelectChange("periodicity", value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
@@ -114,16 +141,15 @@ export function MaintenanceForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="nextDate">Prochaine date</Label>
-              <Input id="nextDate" type="date" />
+              <Input id="nextDate" type="date" onChange={handleChange} />
             </div>
           </div>
         </div>
       )}
-      
       {selectedCategory === "predictive" && (
         <div className="space-y-2 border p-3 rounded-md">
           <Label htmlFor="sensorData">Basée sur des données capteurs</Label>
-          <Select>
+          <Select onValueChange={(value) => handleSelectChange("sensorData", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un type d'alerte" />
             </SelectTrigger>
@@ -137,11 +163,10 @@ export function MaintenanceForm() {
           </Select>
         </div>
       )}
-      
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="vehicle">Véhicule</Label>
-          <Select>
+          <Select onValueChange={(value) => handleSelectChange("vehicle", value)}>
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un véhicule" />
             </SelectTrigger>
@@ -153,72 +178,9 @@ export function MaintenanceForm() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="date">Date planifiée</Label>
-          <Input id="date" type="date" />
-        </div>
       </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="mechanic">Mécanicien assigné</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un mécanicien" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pierre">Pierre Martin</SelectItem>
-              <SelectItem value="sophie">Sophie Durand</SelectItem>
-              <SelectItem value="jean">Jean Dubois</SelectItem>
-              <SelectItem value="marie">Marie Lambert</SelectItem>
-              <SelectItem value="none">Non assigné</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="status">Statut</Label>
-          <Select defaultValue="planned">
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un statut" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="planned">Planifié</SelectItem>
-              <SelectItem value="in-progress">En cours</SelectItem>
-              <SelectItem value="completed">Terminé</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="completed" 
-            checked={isCompleted}
-            onCheckedChange={(checked) => setIsCompleted(checked as boolean)}
-          />
-          <label className="text-sm font-medium leading-none">
-            Intervention terminée
-          </label>
-        </div>
-      </div>
-      
-      {isCompleted && (
-        <div className="space-y-2">
-          <Label htmlFor="cost">Coût (si terminé)</Label>
-          <div className="relative">
-            <Input 
-              id="cost"
-              placeholder="Ex: 120"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <span className="text-gray-500">€</span>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <Button type="submit" className="w-full mt-4">Enregistrer</Button>
+    </form>
+    </>
   );
-}
+} 

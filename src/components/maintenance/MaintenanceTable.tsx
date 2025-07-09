@@ -89,7 +89,8 @@ export function MaintenanceTable({ maintenances, onSelectMaintenance }: Maintena
             <TableHead>Statut</TableHead>
             <TableHead>Mécanicien</TableHead>
             <TableHead>Coût</TableHead>
-            <TableHead className="w-[180px]">Actions</TableHead>
+            <TableHead>OT</TableHead>
+            <TableHead className="w-[140px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -113,10 +114,23 @@ export function MaintenanceTable({ maintenances, onSelectMaintenance }: Maintena
                 <TableCell>{mechanicName || "Non assigné"}</TableCell>
                 <TableCell>{maintenance.cost || "-"}</TableCell>
                 <TableCell>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="ml-1"
+                    title="Créer un ordre de travail"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenWorkOrder(maintenance.id);
+                    }}
+                  >
+                    OT
+                  </Button>
+                </TableCell>
+                <TableCell>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" title="Voir les détails" onClick={(e) => {
                       e.stopPropagation();
-                      // Pour l'instant, on convertit vers l'ancien format
                       const maintenanceForDialog: Maintenance = {
                         ...maintenance,
                         vehicle: vehicleName || '',
@@ -126,25 +140,16 @@ export function MaintenanceTable({ maintenances, onSelectMaintenance }: Maintena
                     }}>
                       <FileText className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" title="Modifier" onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" title="Modifier" onClick={(e) => {
+                      e.stopPropagation();
+                      const maintenanceForEdit: Maintenance = {
+                        ...maintenance,
+                        vehicle: vehicleName || '',
+                        mechanic: mechanicName || '',
+                      } as Maintenance;
+                      // handleOpenEdit(maintenanceForEdit); // This line is removed
+                    }}>
                       <Edit className="h-4 w-4" />
-                    </Button>
-                    {maintenance.status !== "completed" && (
-                      <Button variant="ghost" size="icon" title="Marquer comme terminé" onClick={(e) => e.stopPropagation()}>
-                        <CheckCircle2 className="h-4 w-4 text-fleet-green" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="ml-1"
-                      title="Créer un ordre de travail"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenWorkOrder(maintenance.id);
-                      }}
-                    >
-                      Workflow OT
                     </Button>
                   </div>
                 </TableCell>
@@ -163,6 +168,8 @@ export function MaintenanceTable({ maintenances, onSelectMaintenance }: Maintena
         onOpenChange={setDetailsDialogOpen}
         maintenance={selectedDetails}
       />
+      {/* Modal d'édition pour WorkOrderCreation */}
+      {/* This block is removed as WorkOrderCreation component is removed */}
     </>
   );
 }
