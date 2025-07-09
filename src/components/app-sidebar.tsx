@@ -71,7 +71,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="flex flex-col items-center justify-center p-4 border-b">
-        <div className="font-bold text-xl text-fleet-navy">ELITE FLEET</div>
+        <div className="font-bold text-xl text-fleet-navy">fixfleet</div>
         <div className="text-xs text-fleet-gray mt-1">Gestion de parc automobile</div>
       </SidebarHeader>
       

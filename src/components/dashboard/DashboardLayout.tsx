@@ -5,6 +5,7 @@ import { Bell, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserSwitcher } from "@/components/auth/UserSwitcher";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -49,6 +50,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <ThemeToggle />
               <UserSwitcher />
             </div>
           </header>
