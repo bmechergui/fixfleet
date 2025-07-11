@@ -26,6 +26,13 @@ interface Vehicle {
   bay?: string;
 }
 
+interface Workshop {
+  id: string;
+  name: string;
+  location: string;
+  description: string;
+}
+
 const vehicles: Vehicle[] = [
   {
     id: "V-001",
@@ -93,6 +100,9 @@ const Atelier = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [isAddWorkshopOpen, setIsAddWorkshopOpen] = useState(false);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
+  const [workshopForm, setWorkshopForm] = useState({ name: "", location: "", description: "" });
   
   const { state, dispatch, stats } = useFleet();
 
@@ -124,7 +134,7 @@ const Atelier = () => {
     if (activeTab === "all") return matchesSearch;
     else if (activeTab === "in-workshop") return matchesSearch && vehicle.status === "in-workshop";
     else if (activeTab === "waiting") return matchesSearch && vehicle.status === "waiting";
-    else if (activeTab === "completed") return matchesSearch && vehicle.status === "active";
+    else if (activeTab === "completed") return matchesSearch && vehicle.status === "inactive";
     
     return matchesSearch;
   });
@@ -134,27 +144,12 @@ const Atelier = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Gestion de l'Atelier</h1>
-          <Button className="bg-fleet-blue hover:bg-fleet-lightBlue">
-            Plan de l'atelier
+          <Button className="bg-fleet-blue hover:bg-fleet-lightBlue" onClick={() => setIsAddWorkshopOpen(true)}>
+            Ajouter atelier
           </Button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Véhicules en atelier
-              </CardTitle>
-              <Wrench className="h-4 w-4 text-fleet-orange" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-fleet-orange">{stats.vehiclesInWorkshop}</div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Emplacements occupés: {state.workshopBays.filter(b => b.status === "occupied").length}/{state.workshopBays.length}
-              </p>
-            </CardContent>
-          </Card>
-          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -169,7 +164,20 @@ const Atelier = () => {
               </p>
             </CardContent>
           </Card>
-          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Véhicules en atelier
+              </CardTitle>
+              <Wrench className="h-4 w-4 text-fleet-orange" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-fleet-orange">{stats.vehiclesInWorkshop}</div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Emplacements occupés: {state.workshopBays.filter(b => b.status === "occupied").length}/{state.workshopBays.length}
+              </p>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -202,9 +210,9 @@ const Atelier = () => {
                 <Tabs defaultValue="all" className="w-full md:w-auto" onValueChange={setActiveTab}>
                   <TabsList className="grid grid-cols-4 w-full">
                     <TabsTrigger value="all">Tous</TabsTrigger>
-                    <TabsTrigger value="in-workshop">En atelier</TabsTrigger>
                     <TabsTrigger value="waiting">En attente</TabsTrigger>
-                    <TabsTrigger value="completed">Terminés</TabsTrigger>
+                    <TabsTrigger value="in-workshop">En atelier</TabsTrigger>
+                    <TabsTrigger value="completed">Sorties</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button variant="outline">
@@ -225,7 +233,6 @@ const Atelier = () => {
                     <TableHead>Date d'entrée</TableHead>
                     <TableHead>Date de sortie</TableHead>
                     <TableHead>Mécanicien</TableHead>
-                    <TableHead>Emplacement</TableHead>
                     <TableHead className="w-[150px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -239,49 +246,40 @@ const Atelier = () => {
                       <TableCell>{vehicle.activeMaintenance?.date || "-"}</TableCell>
                       <TableCell>-</TableCell>
                       <TableCell>{vehicle.assignedMechanic || "-"}</TableCell>
-                      <TableCell>{vehicle.bay || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {vehicle.status === "waiting" && (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-xs"
-                              onClick={() => {
-                                setSelectedVehicleId(vehicle.id);
-                                setIsAssignDialogOpen(true);
-                              }}
-                            >
-                              <ArrowRight className="h-3 w-3 mr-1" />
-                              Assigner
-                            </Button>
-                          )}
-                          {vehicle.status === "in-workshop" && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-xs text-fleet-green border-fleet-green"
-                              onClick={() => {
-                                if (vehicle.activeMaintenance) {
-                                  dispatch({
-                                    type: "COMPLETE_MAINTENANCE",
-                                    payload: {
-                                      maintenanceId: vehicle.activeMaintenance.id,
-                                      cost: "0 €",
-                                      actualDuration: 2
-                                    }
-                                  });
-                                  dispatch({
-                                    type: "UPDATE_VEHICLE_STATUS",
-                                    payload: { vehicleId: vehicle.id, status: "active" }
-                                  });
-                                }
-                              }}
-                            >
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Terminer
-                            </Button>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                            disabled={vehicle.status === "in-workshop"}
+                            onClick={() => {
+                              if (vehicle.status !== "in-workshop") {
+                                dispatch({
+                                  type: "UPDATE_VEHICLE_STATUS",
+                                  payload: { vehicleId: vehicle.id, status: "in-workshop" }
+                                });
+                              }
+                            }}
+                          >
+                            En atelier
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs text-fleet-green border-fleet-green"
+                            disabled={vehicle.status === "inactive"}
+                            onClick={() => {
+                              if (vehicle.status !== "inactive") {
+                                dispatch({
+                                  type: "UPDATE_VEHICLE_STATUS",
+                                  payload: { vehicleId: vehicle.id, status: "inactive" }
+                                });
+                              }
+                            }}
+                          >
+                            Sortie
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -291,6 +289,35 @@ const Atelier = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Liste des ateliers */}
+        {workshops.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Liste des ateliers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Emplacement</TableHead>
+                    <TableHead>Description</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {workshops.map((w) => (
+                    <TableRow key={w.id}>
+                      <TableCell>{w.name}</TableCell>
+                      <TableCell>{w.location}</TableCell>
+                      <TableCell>{w.description}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
@@ -339,6 +366,67 @@ const Atelier = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>Annuler</Button>
             <Button className="bg-fleet-blue" onClick={() => setIsAssignDialogOpen(false)}>Assigner</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddWorkshopOpen} onOpenChange={setIsAddWorkshopOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Ajouter un atelier</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="workshop-name">Nom de l'atelier</Label>
+              <Input
+                id="workshop-name"
+                value={workshopForm.name}
+                onChange={e => setWorkshopForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="Ex: Atelier principal"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="workshop-location">Emplacement</Label>
+              <Input
+                id="workshop-location"
+                value={workshopForm.location}
+                onChange={e => setWorkshopForm(f => ({ ...f, location: e.target.value }))}
+                placeholder="Ex: Bâtiment A, Zone 1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="workshop-description">Description</Label>
+              <Input
+                id="workshop-description"
+                value={workshopForm.description}
+                onChange={e => setWorkshopForm(f => ({ ...f, description: e.target.value }))}
+                placeholder="Ex: Atelier dédié à la mécanique générale."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddWorkshopOpen(false)}>Annuler</Button>
+            <Button
+              className="bg-fleet-blue"
+              onClick={() => {
+                if (workshopForm.name && workshopForm.location) {
+                  setWorkshops(ws => [
+                    ...ws,
+                    {
+                      id: Date.now().toString(),
+                      name: workshopForm.name,
+                      location: workshopForm.location,
+                      description: workshopForm.description || "",
+                    } as Workshop,
+                  ]);
+                  setWorkshopForm({ name: "", location: "", description: "" });
+                  setIsAddWorkshopOpen(false);
+                }
+              }}
+              disabled={!workshopForm.name || !workshopForm.location}
+            >
+              Ajouter
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

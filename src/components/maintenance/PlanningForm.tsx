@@ -15,10 +15,10 @@ export function PlanningForm({ onSubmit }: PlanningFormProps) {
   const [form, setForm] = useState<any>({
     maintenance: "",
     vehicle: "",
+    atelier: "",
     date: "",
     time: "09:00",
     duration: "2",
-    location: "",
     mechanic: "",
     completed: false,
   });
@@ -92,10 +92,10 @@ export function PlanningForm({ onSubmit }: PlanningFormProps) {
         <Input id="duration" type="number" value={form.duration} onChange={handleChange} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="location">Emplacement atelier</Label>
-        <Select onValueChange={(value) => handleSelectChange("location", value)}>
+        <Label htmlFor="atelier">Atelier</Label>
+        <Select onValueChange={(value) => handleSelectChange("atelier", value)}>
           <SelectTrigger>
-            <SelectValue placeholder="Sélectionner un emplacement" />
+            <SelectValue placeholder="Sélectionner un atelier" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="atelier1">Atelier principal</SelectItem>
